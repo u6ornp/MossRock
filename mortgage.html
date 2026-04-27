@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MossRock – Mortgage, Amortization & Refinance Calculators</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --linen:     #F9F5EE;
+  --cream:     #FFF8F0;
+  --sand:      #E8D9BF;
+  --sand-dk:   #C9B48E;
+  --stone:     #B5A490;
+  --warm-gray: #8C7B6E;
+  --bark:      #4A3728;
+  --espresso:  #1C1209;
+  --terra:     #C1714F;
+  --terra-dk:  #A05638;
+  --terra-lt:  #E8937A;
+  --forest:    #3D6B4A;
+  --forest-lt: #5A8A65;
+  --sage:      #7A9B72;
+  --sage-lt:   #A8C4A0;
+  --card:      #FFFFFF;
+  --border:    #E5DAC8;
+  --shadow:    rgba(74,55,40,0.09);
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--linen); color: var(--espresso); line-height: 1.6; }
+h1,h2,h3,h4 { line-height: 1.2; font-weight: 800; letter-spacing: -0.3px; }
+p { color: var(--bark); }
+
+/* ── NAV ──────────────────────────────────────────────── */
+.nav { background: var(--espresso); position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 16px rgba(0,0,0,0.25); }
+.nav-inner { max-width: 1160px; margin: 0 auto; display: flex; align-items: center; gap: 32px; padding: 0 24px; }
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 15px 0; }
+.nav-logo-icon { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg, var(--forest), var(--sage)); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.nav-logo-text { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+.nav-logo-text span { color: var(--terra-lt); }
+.nav-links { display: flex; gap: 2px; flex: 1; }
+.nav-link { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 13px; font-weight: 500; padding: 17px 12px; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; white-space: nowrap; }
+.nav-link:hover { color: rgba(255,255,255,0.85); }
+.nav-link.active { color: #fff; border-bottom-color: var(--terra-lt); }
+.nav-cta { margin-left: auto; background: var(--terra); color: #fff; border: none; border-radius: 9px; padding: 8px 18px; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; white-space: nowrap; transition: background 0.2s; }
+.nav-cta:hover { background: var(--terra-dk); }
+
+/* ── HERO ─────────────────────────────────────────────── */
+.hero { background: linear-gradient(155deg, var(--espresso) 0%, #3B2213 55%, var(--forest) 100%); padding: 72px 24px 80px; position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; top: -80px; right: -120px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(122,155,114,0.15) 0%, transparent 70%); pointer-events: none; }
+.blob2 { position: absolute; bottom: -100px; left: -80px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(193,113,79,0.12) 0%, transparent 70%); pointer-events: none; }
+.hero-inner { max-width: 700px; margin: 0 auto; text-align: center; position: relative; z-index: 1; }
+.hero-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: rgba(255,255,255,0.75); margin-bottom: 20px; }
+.hero-badge span { color: var(--sage-lt); font-weight: 700; }
+.hero h1 { font-size: clamp(30px, 5.5vw, 56px); color: #fff; margin-bottom: 16px; letter-spacing: -1.5px; }
+.hero h1 em { color: var(--terra-lt); font-style: normal; }
+.hero-sub { font-size: 17px; color: rgba(255,255,255,0.62); max-width: 500px; margin: 0 auto 30px; }
+.hero-stats { display: flex; justify-content: center; gap: 36px; flex-wrap: wrap; }
+.hero-stat { text-align: center; }
+.hero-stat-val { font-size: 20px; font-weight: 900; color: #fff; }
+.hero-stat-lbl { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+/* ── RATE BAR ─────────────────────────────────────────── */
+.rate-bar { background: var(--card); border-bottom: 1px solid var(--border); }
+.rate-bar-inner { max-width: 1160px; margin: 0 auto; display: flex; align-items: center; padding: 0 24px; overflow-x: auto; }
+.rate-item { display: flex; align-items: center; gap: 12px; padding: 14px 24px; border-right: 1px solid var(--border); flex-shrink: 0; }
+.rate-item:first-child { padding-left: 0; }
+.rate-lbl { font-size: 11px; font-weight: 600; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.5px; }
+.rate-val { font-size: 20px; font-weight: 900; color: var(--espresso); }
+.rate-chg { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 5px; }
+.rate-chg.up   { background: #F0FFF4; color: #2E7D32; }
+.rate-chg.down { background: #FFF5F5; color: #C62828; }
+.rate-note { font-size: 11px; color: var(--warm-gray); margin-left: auto; padding: 14px 0; white-space: nowrap; }
+
+/* ── TAB BAR ──────────────────────────────────────────── */
+.tab-bar { background: var(--espresso); padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,0.08); position: sticky; top: 63px; z-index: 100; }
+.tab-bar-inner { max-width: 1160px; margin: 0 auto; display: flex; gap: 4px; overflow-x: auto; }
+.tab-bar-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 16px 22px 14px; background: none; border: none;
+  border-bottom: 3px solid transparent; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.5);
+  white-space: nowrap; transition: color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.tab-bar-btn:hover { color: rgba(255,255,255,0.82); }
+.tab-bar-btn.active { color: #fff; border-bottom-color: var(--terra-lt); }
+.tab-bar-btn .tb-icon { font-size: 16px; }
+.tab-bar-btn .tb-badge { background: var(--terra); color: #fff; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 6px; letter-spacing: 0.5px; }
+
+/* ── TAB PAGES ────────────────────────────────────────── */
+.tab-page { display: none; }
+.tab-page.active { display: block; animation: fadeUp 0.3s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+/* ── SHARED SECTION ───────────────────────────────────── */
+.section { padding: 72px 24px; }
+.section-alt { background: var(--cream); }
+.container { max-width: 1160px; margin: 0 auto; }
+.section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--terra); margin-bottom: 10px; }
+.section-title { font-size: clamp(22px, 3vw, 34px); color: var(--espresso); margin-bottom: 10px; }
+.section-sub   { font-size: 15px; color: var(--warm-gray); max-width: 500px; }
+
+/* ── CALC WRAP ────────────────────────────────────────── */
+.calc-wrap { background: var(--espresso); padding: 72px 24px; position: relative; overflow: hidden; }
+.calc-wrap::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1' fill='rgba(255,255,255,0.025)'/%3E%3C/svg%3E"); pointer-events: none; }
+.calc-header { text-align: center; margin-bottom: 44px; }
+.calc-header .section-eyebrow { color: var(--sage-lt); }
+.calc-header .section-title   { color: #fff; }
+.calc-header .section-sub     { color: rgba(255,255,255,0.5); margin: 0 auto; }
+.calc-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 980px; margin: 0 auto; align-items: start; }
+
+/* ── FORM ELEMENTS ────────────────────────────────────── */
+.calc-card { background: var(--card); border-radius: 22px; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.28); }
+.calc-card h3 { font-size: 17px; color: var(--espresso); margin-bottom: 24px; }
+.field { margin-bottom: 20px; }
+.field-label { display: block; font-size: 11px; font-weight: 700; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 7px; }
+.input-group { position: relative; display: flex; align-items: center; }
+.input-prefix, .input-suffix { position: absolute; font-size: 14px; font-weight: 700; color: var(--stone); pointer-events: none; }
+.input-prefix { left: 13px; } .input-suffix { right: 13px; }
+input[type=number] { width: 100%; padding: 12px 14px; font-size: 16px; font-weight: 600; color: var(--espresso); border: 2px solid var(--border); border-radius: 11px; background: var(--linen); outline: none; transition: border-color 0.2s, box-shadow 0.2s; -moz-appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type=number]:focus { border-color: var(--forest); background: #fff; box-shadow: 0 0 0 3px rgba(61,107,74,0.12); }
+.has-pfx { padding-left: 28px; } .has-sfx { padding-right: 38px; }
+input[type=range] { width: 100%; margin-top: 7px; -webkit-appearance: none; height: 4px; background: var(--border); border-radius: 3px; outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 17px; height: 17px; border-radius: 50%; background: var(--forest); border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,0.2); }
+.range-vals { display: flex; justify-content: space-between; font-size: 10px; color: var(--stone); margin-top: 3px; }
+.down-row { display: flex; gap: 9px; align-items: flex-end; }
+.down-row .field:first-child { flex: 1; margin: 0; }
+.down-badge { background: var(--forest); color: #fff; border-radius: 9px; padding: 12px 14px; font-size: 15px; font-weight: 800; min-width: 64px; text-align: center; height: 48px; display: flex; align-items: center; justify-content: center; }
+.term-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.term-pill { flex: 1; min-width: 48px; padding: 10px 6px; text-align: center; font-size: 12px; font-weight: 700; border: 2px solid var(--border); border-radius: 9px; background: var(--linen); color: var(--warm-gray); cursor: pointer; transition: all 0.15s; }
+.term-pill:hover { border-color: var(--forest-lt); color: var(--forest); }
+.term-pill.active { background: var(--forest); border-color: var(--forest); color: #fff; }
+.adv-toggle { display: flex; align-items: center; gap: 7px; background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--forest); padding: 3px 0; margin-top: -6px; margin-bottom: 14px; }
+.adv-toggle svg { transition: transform 0.2s; }
+.adv-toggle.open svg { transform: rotate(180deg); }
+.adv-fields { display: none; } .adv-fields.open { display: block; }
+.adv-divider { border: none; border-top: 1px dashed var(--border); margin: 14px 0; }
+.calc-btn { width: 100%; padding: 14px; font-size: 15px; font-weight: 800; border: none; border-radius: 13px; cursor: pointer; background: linear-gradient(135deg, var(--terra), var(--terra-dk)); color: #fff; box-shadow: 0 4px 18px rgba(193,113,79,0.4); transition: transform 0.15s, box-shadow 0.15s; }
+.calc-btn:hover { transform: translateY(-1px); box-shadow: 0 7px 22px rgba(193,113,79,0.5); }
+
+/* ── RESULT CARD ──────────────────────────────────────── */
+.result-top { background: linear-gradient(135deg, var(--forest), var(--forest-lt)); border-radius: 16px; padding: 24px; text-align: center; color: #fff; }
+.result-top .rt-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.72; }
+.result-top .rt-val { font-size: 46px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin: 7px 0 4px; }
+.result-top .rt-sub { font-size: 12px; opacity: 0.62; }
+.bd-list { display: flex; flex-direction: column; gap: 7px; }
+.bd-row { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 9px; background: var(--linen); }
+.bd-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+.bd-label { font-size: 12px; color: var(--bark); flex: 1; }
+.bd-val   { font-size: 13px; font-weight: 800; color: var(--espresso); }
+.donut-wrap { display: flex; align-items: center; gap: 20px; }
+.donut-legend { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.dl-row { display: flex; align-items: center; gap: 7px; }
+.dl-sw  { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+.dl-lbl { font-size: 12px; color: var(--warm-gray); flex: 1; }
+.dl-val { font-size: 12px; font-weight: 800; color: var(--espresso); }
+.dl-pct { font-size: 10px; color: var(--stone); min-width: 30px; text-align: right; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.stat-box { background: var(--linen); border-radius: 11px; padding: 12px 14px; border: 1px solid var(--border); }
+.stat-box .sl { font-size: 10px; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 0.4px; }
+.stat-box .sv { font-size: 16px; font-weight: 900; color: var(--espresso); margin-top: 3px; }
+.sv.terra { color: var(--terra); } .sv.forest { color: var(--forest); }
+
+/* ── STEPS / FACTORS ──────────────────────────────────── */
+.steps-grid   { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.factors-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.step-card { background: var(--card); border-radius: 18px; padding: 28px; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); }
+.step-num { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--terra), var(--terra-dk)); color: #fff; font-size: 17px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.step-card h4 { font-size: 16px; color: var(--espresso); margin-bottom: 7px; }
+.step-card p  { font-size: 13px; line-height: 1.7; }
+.factor-card { background: var(--card); border-radius: 18px; padding: 24px; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); display: flex; gap: 18px; transition: transform 0.2s, box-shadow 0.2s; }
+.factor-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--shadow); }
+.factor-icon { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.fi-terra  { background: #FDF0EA; } .fi-forest { background: #EDF5EE; } .fi-sand { background: #FBF5E8; } .fi-sage { background: #EEF5EC; }
+.factor-card h4 { font-size: 15px; color: var(--espresso); margin-bottom: 5px; }
+.factor-card p  { font-size: 12px; line-height: 1.7; }
+.rule-box { background: linear-gradient(135deg, var(--forest) 0%, #2A5237 100%); border-radius: 22px; padding: 44px; display: flex; gap: 44px; align-items: center; flex-wrap: wrap; }
+.rule-box-text h3 { font-size: 24px; color: #fff; margin-bottom: 10px; }
+.rule-box-text p  { color: rgba(255,255,255,0.62); font-size: 14px; max-width: 460px; line-height: 1.8; }
+.rule-pills { display: flex; gap: 12px; flex-shrink: 0; }
+.rule-pill { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 12px 20px; text-align: center; }
+.rpv { font-size: 28px; font-weight: 900; color: var(--sage-lt); line-height: 1; }
+.rpl { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 3px; }
+
+/* ── FAQ ──────────────────────────────────────────────── */
+.faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.faq-q { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; background: none; border: none; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--espresso); text-align: left; gap: 14px; }
+.faq-q svg { flex-shrink: 0; transition: transform 0.25s; color: var(--stone); }
+.faq-q.open svg { transform: rotate(45deg); color: var(--terra); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.35s; padding: 0 22px; }
+.faq-a.open { max-height: 240px; padding: 0 22px 18px; }
+.faq-a p { font-size: 14px; color: var(--bark); line-height: 1.8; }
+
+/* ── CTA ──────────────────────────────────────────────── */
+.cta-banner { background: linear-gradient(135deg, var(--terra), #8B3A20); border-radius: 22px; padding: 52px 44px; text-align: center; position: relative; overflow: hidden; }
+.cta-banner::before { content: ''; position: absolute; top: -60px; right: -60px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,0.07); pointer-events: none; }
+.cta-banner h2 { font-size: 30px; color: #fff; margin-bottom: 10px; }
+.cta-banner p  { font-size: 15px; color: rgba(255,255,255,0.68); margin-bottom: 24px; }
+.cta-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn-primary { background: #fff; color: var(--terra-dk); border: none; border-radius: 11px; padding: 13px 26px; font-size: 14px; font-weight: 800; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+.btn-primary:hover { transform: translateY(-2px); }
+.btn-outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.38); border-radius: 11px; padding: 12px 26px; font-size: 14px; font-weight: 700; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+.btn-outline:hover { border-color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.07); }
+
+/* ═══════════════════════════════════════════════════════
+   AMORTIZATION TAB
+═══════════════════════════════════════════════════════ */
+.amort-layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; max-width: 1100px; margin: 0 auto; align-items: start; }
+.amort-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.amort-stat { background: var(--card); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 2px 10px var(--shadow); }
+.amort-stat .al { font-size: 11px; font-weight: 700; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.5px; }
+.amort-stat .av { font-size: 22px; font-weight: 900; margin-top: 5px; }
+.amort-stat .av.forest { color: var(--forest); }
+.amort-stat .av.terra  { color: var(--terra); }
+.amort-stat .av.bark   { color: var(--bark); }
+.chart-card { background: var(--card); border-radius: 18px; padding: 24px; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); margin-bottom: 24px; }
+.chart-card h4 { font-size: 15px; font-weight: 800; color: var(--espresso); margin-bottom: 6px; }
+.chart-card .chart-sub { font-size: 12px; color: var(--warm-gray); margin-bottom: 16px; }
+.chart-legend { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+.cl-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--bark); }
+.cl-dot { width: 10px; height: 10px; border-radius: 3px; }
+/* Schedule table */
+.schedule-card { background: var(--card); border-radius: 18px; overflow: hidden; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); }
+.schedule-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+.schedule-head h4 { font-size: 15px; font-weight: 800; color: var(--espresso); }
+.view-toggle { display: flex; gap: 6px; }
+.view-btn { background: var(--linen); border: 1px solid var(--border); border-radius: 7px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--warm-gray); cursor: pointer; transition: all 0.15s; }
+.view-btn.active { background: var(--forest); border-color: var(--forest); color: #fff; }
+.schedule-table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: var(--linen); padding: 11px 16px; text-align: right; font-size: 11px; font-weight: 700; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.4px; position: sticky; top: 0; z-index: 1; }
+thead th:first-child { text-align: left; }
+tbody tr:nth-child(even) { background: var(--cream); }
+tbody tr:hover { background: var(--sand); }
+tbody td { padding: 10px 16px; text-align: right; color: var(--bark); border-bottom: 1px solid var(--border); }
+tbody td:first-child { text-align: left; font-weight: 700; color: var(--espresso); }
+td.principal { color: var(--forest); font-weight: 700; }
+td.interest  { color: var(--terra);  font-weight: 700; }
+td.balance   { color: var(--bark);  }
+
+/* ═══════════════════════════════════════════════════════
+   REFINANCE TAB
+═══════════════════════════════════════════════════════ */
+.refi-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 980px; margin: 0 auto; align-items: start; }
+.refi-section-label { font-size: 11px; font-weight: 700; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.8px; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.refi-result-card { background: var(--card); border-radius: 22px; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.28); display: flex; flex-direction: column; gap: 20px; }
+.refi-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.refi-box { border-radius: 14px; padding: 18px; text-align: center; }
+.refi-box.current { background: var(--linen); border: 2px solid var(--border); }
+.refi-box.new     { background: linear-gradient(135deg, var(--forest), var(--forest-lt)); }
+.refi-box .rb-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.refi-box.current .rb-lbl { color: var(--warm-gray); }
+.refi-box.new     .rb-lbl { color: rgba(255,255,255,0.7); }
+.refi-box .rb-val { font-size: 32px; font-weight: 900; letter-spacing: -1px; line-height: 1.1; margin: 7px 0 3px; }
+.refi-box.current .rb-val { color: var(--espresso); }
+.refi-box.new     .rb-val { color: #fff; }
+.refi-box .rb-sub { font-size: 11px; }
+.refi-box.current .rb-sub { color: var(--warm-gray); }
+.refi-box.new     .rb-sub { color: rgba(255,255,255,0.6); }
+.savings-banner { border-radius: 14px; padding: 20px; text-align: center; }
+.savings-banner.positive { background: linear-gradient(135deg, #EDF5EE, #D4EBD7); border: 2px solid var(--sage); }
+.savings-banner.negative { background: #FFF5F0; border: 2px solid var(--terra-lt); }
+.sb-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--warm-gray); }
+.sb-val   { font-size: 40px; font-weight: 900; letter-spacing: -1.5px; margin: 6px 0 2px; }
+.sb-val.save  { color: var(--forest); }
+.sb-val.cost  { color: var(--terra); }
+.sb-sub       { font-size: 12px; color: var(--warm-gray); }
+.refi-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.refi-stat { background: var(--linen); border-radius: 11px; padding: 13px; border: 1px solid var(--border); text-align: center; }
+.refi-stat .rl { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--stone); letter-spacing: 0.4px; }
+.refi-stat .rv { font-size: 15px; font-weight: 900; color: var(--espresso); margin-top: 4px; }
+.refi-stat .rv.forest { color: var(--forest); }
+.refi-stat .rv.terra  { color: var(--terra); }
+.breakeven-bar { background: var(--linen); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
+.be-label { font-size: 11px; font-weight: 700; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+.be-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.be-fill  { height: 100%; background: linear-gradient(90deg, var(--forest), var(--sage)); border-radius: 4px; transition: width 0.6s ease; }
+.be-nums  { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--warm-gray); }
+.be-point { font-size: 13px; font-weight: 800; color: var(--forest); margin-top: 4px; }
+.refi-notice { font-size: 12px; color: var(--warm-gray); background: var(--linen); border-radius: 10px; padding: 12px 14px; border-left: 3px solid var(--sand-dk); line-height: 1.6; }
+
+/* ── FOOTER ───────────────────────────────────────────── */
+footer { background: var(--espresso); padding: 52px 24px 26px; }
+.footer-inner { max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 36px; margin-bottom: 40px; }
+.footer-logo { font-size: 20px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 10px; }
+.footer-logo span { color: var(--terra-lt); }
+.footer-tagline { font-size: 12px; color: rgba(255,255,255,0.38); max-width: 240px; line-height: 1.7; }
+.footer-col h5 { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.footer-col a  { font-size: 12px; color: rgba(255,255,255,0.38); text-decoration: none; transition: color 0.2s; }
+.footer-col a:hover { color: rgba(255,255,255,0.82); }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.footer-bottom p { font-size: 11px; color: rgba(255,255,255,0.28); }
+
+/* ═══════════════════════════════════════════════════════
+   HOME DECISION ENGINE TAB
+═══════════════════════════════════════════════════════ */
+.tb-badge { background: var(--terra); color: #fff; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; vertical-align: middle; margin-left: 4px; }
+
+/* HDE layout */
+.hde-wrap { max-width: 820px; margin: 0 auto; }
+
+/* Input state */
+.hde-input-card { background: var(--card); border-radius: 22px; box-shadow: 0 6px 32px var(--shadow); border: 1px solid var(--border); padding: 48px 48px 44px; text-align: center; }
+.hde-input-card h2 { font-size: 26px; color: var(--espresso); margin-bottom: 8px; }
+.hde-input-card p  { font-size: 14px; color: var(--warm-gray); margin-bottom: 32px; max-width: 480px; margin-left: auto; margin-right: auto; }
+.hde-addr-wrap { position: relative; max-width: 540px; margin: 0 auto 20px; }
+.hde-addr-inp  { width: 100%; border: 2px solid var(--border); border-radius: 13px; padding: 16px 20px; font-size: 15px; color: var(--espresso); background: var(--linen); outline: none; transition: border-color 0.2s; }
+.hde-addr-inp:focus { border-color: var(--forest); background: #fff; }
+.hde-autocomplete { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 11px; box-shadow: 0 8px 24px rgba(0,0,0,0.13); z-index: 100; overflow: hidden; }
+.hde-ac-item { padding: 12px 18px; font-size: 13px; color: var(--bark); cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.hde-ac-item:last-child { border-bottom: none; }
+.hde-ac-item:hover, .hde-ac-item.hovered { background: var(--linen); }
+.hde-ac-icon { font-size: 15px; }
+.hde-btn-analyze { background: linear-gradient(135deg, var(--forest), var(--sage)); color: #fff; border: none; border-radius: 13px; padding: 15px 40px; font-size: 15px; font-weight: 800; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 4px 18px rgba(61,107,74,0.35); }
+.hde-btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(61,107,74,0.4); }
+.hde-disclaimer-sm { font-size: 11px; color: var(--stone); margin-top: 18px; line-height: 1.6; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+/* Loading state */
+.hde-loading { display: none; text-align: center; padding: 60px 24px; }
+.hde-loading.active { display: block; }
+.hde-spinner { width: 56px; height: 56px; border: 4px solid var(--border); border-top-color: var(--forest); border-radius: 50%; margin: 0 auto 28px; animation: hde-spin 0.9s linear infinite; }
+@keyframes hde-spin { to { transform: rotate(360deg); } }
+.hde-loading h3  { font-size: 18px; color: var(--espresso); margin-bottom: 8px; }
+.hde-loading p   { font-size: 13px; color: var(--warm-gray); }
+.hde-progress-steps { max-width: 360px; margin: 28px auto 0; display: flex; flex-direction: column; gap: 10px; }
+.hde-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--stone); }
+.hde-step.done  { color: var(--forest); }
+.hde-step.active { color: var(--bark); font-weight: 700; }
+.hde-step-icon { width: 22px; height: 22px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+.hde-step.done .hde-step-icon  { background: var(--forest); color: #fff; }
+.hde-step.active .hde-step-icon { background: var(--terra); color: #fff; animation: hde-pulse 1.1s ease infinite; }
+@keyframes hde-pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+
+/* Results state */
+.hde-results { display: none; }
+.hde-results.active { display: block; }
+.hde-results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+.hde-results-header h2 { font-size: 18px; color: var(--espresso); }
+.hde-results-addr { font-size: 13px; color: var(--warm-gray); }
+.hde-back-btn { background: var(--linen); border: 1px solid var(--border); border-radius: 9px; padding: 8px 16px; font-size: 13px; font-weight: 700; color: var(--bark); cursor: pointer; transition: background 0.15s; }
+.hde-back-btn:hover { background: var(--sand); }
+
+/* Score ring */
+.hde-score-row { display: grid; grid-template-columns: auto 1fr; gap: 28px; background: var(--card); border-radius: 22px; padding: 32px; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; align-items: center; }
+.hde-ring-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+.hde-ring-wrap svg { transform: rotate(-90deg); }
+.hde-ring-bg { fill: none; stroke: var(--border); stroke-width: 10; }
+.hde-ring-fg { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1), stroke 0.4s; }
+.hde-ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+.hde-ring-score { font-size: 34px; font-weight: 900; line-height: 1; color: var(--espresso); }
+.hde-ring-label { font-size: 10px; font-weight: 700; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.5px; }
+.hde-score-info h3 { font-size: 20px; font-weight: 900; color: var(--espresso); margin-bottom: 4px; }
+.hde-score-verdict { font-size: 13px; color: var(--warm-gray); margin-bottom: 16px; }
+.hde-breakdown { display: flex; flex-direction: column; gap: 9px; }
+.hde-bd-row { display: flex; align-items: center; gap: 10px; }
+.hde-bd-label { font-size: 11px; font-weight: 700; color: var(--bark); width: 160px; flex-shrink: 0; }
+.hde-bd-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.hde-bd-fill  { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.hde-bd-score { font-size: 11px; font-weight: 700; color: var(--warm-gray); width: 30px; text-align: right; }
+
+/* Monthly cost card */
+.hde-cost-card { background: var(--card); border-radius: 18px; padding: 24px 28px; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; }
+.hde-cost-card h4 { font-size: 14px; font-weight: 800; color: var(--espresso); margin-bottom: 16px; }
+.hde-cost-rows { display: flex; flex-direction: column; gap: 8px; }
+.hde-cost-row  { display: flex; justify-content: space-between; font-size: 13px; color: var(--bark); padding: 6px 0; border-bottom: 1px solid var(--border); }
+.hde-cost-row:last-child { border-bottom: none; font-weight: 900; font-size: 15px; color: var(--espresso); padding-top: 10px; }
+.hde-cost-val { font-weight: 700; }
+
+/* Insights grid */
+.hde-insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+.hde-insight-card { background: var(--card); border-radius: 15px; padding: 18px; box-shadow: 0 2px 10px var(--shadow); border: 1px solid var(--border); border-top: 3px solid var(--border); }
+.hde-insight-card.positive { border-top-color: var(--forest); }
+.hde-insight-card.neutral  { border-top-color: var(--sand-dk); }
+.hde-insight-card.concern  { border-top-color: var(--terra); }
+.hde-insight-icon  { font-size: 20px; margin-bottom: 8px; }
+.hde-insight-title { font-size: 12px; font-weight: 800; color: var(--espresso); margin-bottom: 4px; }
+.hde-insight-body  { font-size: 11px; color: var(--warm-gray); line-height: 1.5; }
+
+/* Risk flags */
+.hde-flags-card { background: var(--card); border-radius: 18px; padding: 24px 28px; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; }
+.hde-flags-card h4 { font-size: 14px; font-weight: 800; color: var(--espresso); margin-bottom: 14px; }
+.hde-flags-list { display: flex; flex-direction: column; gap: 10px; }
+.hde-flag { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 11px; font-size: 13px; }
+.hde-flag.high    { background: #FFF0EC; border: 1px solid #F5C5B5; }
+.hde-flag.medium  { background: #FEFAED; border: 1px solid #E8D58A; }
+.hde-flag.low     { background: #F0F7F2; border: 1px solid #A8C4A0; }
+.hde-flag.clear   { background: #F2FAF3; border: 1px solid #B5D6BA; }
+.hde-flag-icon    { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+.hde-flag-text    { flex: 1; }
+.hde-flag-text strong { display: block; font-weight: 800; color: var(--espresso); margin-bottom: 2px; }
+.hde-flag-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.hde-flag.high .hde-flag-badge   { background: var(--terra); color: #fff; }
+.hde-flag.medium .hde-flag-badge { background: #D4A017; color: #fff; }
+.hde-flag.low .hde-flag-badge    { background: var(--forest); color: #fff; }
+.hde-flag.clear .hde-flag-badge  { background: var(--sage); color: #fff; }
+
+/* Two-col lower section */
+.hde-lower { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.hde-prop-card, .hde-reg-card { background: var(--card); border-radius: 18px; padding: 24px 28px; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); }
+.hde-prop-card h4, .hde-reg-card h4 { font-size: 14px; font-weight: 800; color: var(--espresso); margin-bottom: 14px; }
+.hde-prop-rows { display: flex; flex-direction: column; gap: 6px; }
+.hde-prop-row  { display: flex; justify-content: space-between; font-size: 12px; color: var(--bark); padding: 5px 0; border-bottom: 1px dashed var(--border); }
+.hde-prop-row:last-child { border-bottom: none; }
+.hde-prop-val  { font-weight: 700; color: var(--espresso); }
+.hde-reg-number { font-size: 42px; font-weight: 900; color: var(--espresso); line-height: 1; }
+.hde-reg-unit   { font-size: 11px; color: var(--warm-gray); margin-bottom: 10px; }
+.hde-reg-bar-wrap { background: var(--linen); border-radius: 6px; height: 8px; overflow: hidden; margin-bottom: 6px; }
+.hde-reg-bar  { height: 100%; border-radius: 6px; transition: width 1s ease; }
+.hde-reg-note { font-size: 11px; color: var(--warm-gray); line-height: 1.5; }
+
+/* Disclaimer */
+.hde-disclaimer-box { background: var(--linen); border-radius: 14px; border: 1px solid var(--border); padding: 18px 22px; font-size: 11px; color: var(--warm-gray); line-height: 1.7; margin-bottom: 20px; }
+.hde-disclaimer-box strong { color: var(--bark); }
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width: 900px) {
+  .calc-layout, .amort-layout, .refi-layout { grid-template-columns: 1fr; }
+  .amort-summary { grid-template-columns: 1fr 1fr; }
+  .refi-stats    { grid-template-columns: 1fr 1fr; }
+  .steps-grid, .factors-grid { grid-template-columns: 1fr; }
+  .footer-inner  { grid-template-columns: 1fr 1fr; }
+  .hde-insights-grid { grid-template-columns: 1fr 1fr; }
+  .hde-lower { grid-template-columns: 1fr; }
+  .hde-score-row { grid-template-columns: 1fr; justify-items: center; }
+  .hde-bd-label { width: 130px; }
+}
+@media (max-width: 620px) {
+  .nav-links { display: none; }
+  .amort-summary { grid-template-columns: 1fr; }
+  .refi-compare, .refi-stats { grid-template-columns: 1fr; }
+  .rule-box { flex-direction: column; gap: 20px; padding: 32px 24px; }
+  .hero-stats { gap: 18px; }
+  .footer-inner { grid-template-columns: 1fr; }
+  .cta-banner { padding: 36px 22px; }
+  .hde-insights-grid { grid-template-columns: 1fr; }
+  .hde-input-card { padding: 32px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ──────────────────────────────────────────────── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">
+      <div class="nav-logo-icon">🪨</div>
+      <div class="nav-logo-text">Moss<span>Rock</span></div>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="#" onclick="switchTab('mortgage');return false;">Mortgage</a>
+      <a class="nav-link" href="#" onclick="switchTab('amort');return false;">Amortization</a>
+      <a class="nav-link" href="#" onclick="switchTab('refi');return false;">Refinance</a>
+      <a class="nav-link" href="#faq">FAQ</a>
+    </div>
+    <a class="nav-cta" href="#" onclick="switchTab('mortgage');return false;">Get Started</a>
+  </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="blob2"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">🌿 <span>Free</span> mortgage tools — no sign-up required</div>
+    <h1>Smart <em>Mortgage</em><br>Calculators</h1>
+    <p class="hero-sub">Calculate payments, build amortization schedules, and find out if refinancing saves you money.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val">4</div><div class="hero-stat-lbl">Free calculators</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">100%</div><div class="hero-stat-lbl">No sign-up needed</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">$0</div><div class="hero-stat-lbl">Hidden fees</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── RATE BAR ──────────────────────────────────────────── -->
+<div class="rate-bar">
+  <div class="rate-bar-inner">
+    <div class="rate-item"><div><div class="rate-lbl">30-Year Fixed</div><div class="rate-val">6.89%</div></div><span class="rate-chg down">▼ 0.04</span></div>
+    <div class="rate-item"><div><div class="rate-lbl">20-Year Fixed</div><div class="rate-val">6.54%</div></div><span class="rate-chg down">▼ 0.02</span></div>
+    <div class="rate-item"><div><div class="rate-lbl">15-Year Fixed</div><div class="rate-val">6.12%</div></div><span class="rate-chg up">▲ 0.01</span></div>
+    <div class="rate-item"><div><div class="rate-lbl">10-Year Fixed</div><div class="rate-val">5.98%</div></div><span class="rate-chg down">▼ 0.03</span></div>
+    <div class="rate-item"><div><div class="rate-lbl">5/1 ARM</div><div class="rate-val">6.24%</div></div><span class="rate-chg up">▲ 0.05</span></div>
+    <span class="rate-note">* Illustrative rates for reference only</span>
+  </div>
+</div>
+
+<!-- ── TAB BAR ───────────────────────────────────────────── -->
+<div class="tab-bar">
+  <div class="tab-bar-inner">
+    <button class="tab-bar-btn active" data-tab="mortgage" onclick="switchTab('mortgage')">
+      <span class="tb-icon">🏡</span> Mortgage Calculator
+    </button>
+    <button class="tab-bar-btn" data-tab="amort" onclick="switchTab('amort')">
+      <span class="tb-icon">📅</span> Amortization Calculator
+    </button>
+    <button class="tab-bar-btn" data-tab="refi" onclick="switchTab('refi')">
+      <span class="tb-icon">🔄</span> Refinance Calculator
+    </button>
+    <button class="tab-bar-btn" data-tab="hde" onclick="switchTab('hde')">
+      <span class="tb-icon">🏠</span> Home Decision Engine <span class="tb-badge">NEW</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 1: MORTGAGE CALCULATOR
+══════════════════════════════════════════════════════════ -->
+<div id="tab-mortgage" class="tab-page active">
+
+  <div class="calc-wrap">
+    <div class="calc-header">
+      <div class="section-eyebrow">Mortgage Calculator</div>
+      <h2 class="section-title">What will your payment be?</h2>
+      <p class="section-sub">Enter your loan details for an instant payment breakdown</p>
+    </div>
+    <div class="calc-layout">
+      <!-- Form -->
+      <div class="calc-card">
+        <h3>🏡 Loan Details</h3>
+        <div class="field">
+          <label class="field-label">Home Price</label>
+          <div class="input-group"><span class="input-prefix">$</span>
+            <input type="number" id="m_homePrice" class="has-pfx" value="450000" min="10000" step="5000">
+          </div>
+          <input type="range" id="m_homePriceRng" min="50000" max="3000000" step="10000" value="450000">
+          <div class="range-vals"><span>$50k</span><span>$3M</span></div>
+        </div>
+        <div class="field">
+          <label class="field-label">Down Payment</label>
+          <div class="down-row">
+            <div class="field"><div class="input-group"><span class="input-prefix">$</span>
+              <input type="number" id="m_downAmt" class="has-pfx" value="90000" min="0" step="1000">
+            </div></div>
+            <div class="down-badge" id="m_downPct">20%</div>
+          </div>
+          <input type="range" id="m_downRng" min="0" max="100" step="1" value="20">
+          <div class="range-vals"><span>0%</span><span>100%</span></div>
+        </div>
+        <div class="field">
+          <label class="field-label">Loan Term</label>
+          <div class="term-pills" id="m_termPills">
+            <button class="term-pill" data-yr="10">10 yr</button>
+            <button class="term-pill" data-yr="15">15 yr</button>
+            <button class="term-pill" data-yr="20">20 yr</button>
+            <button class="term-pill" data-yr="25">25 yr</button>
+            <button class="term-pill active" data-yr="30">30 yr</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Interest Rate</label>
+          <div class="input-group">
+            <input type="number" id="m_rate" class="has-sfx" value="6.89" min="0.1" max="20" step="0.05">
+            <span class="input-suffix">%</span>
+          </div>
+          <input type="range" id="m_rateRng" min="0.5" max="15" step="0.05" value="6.89">
+          <div class="range-vals"><span>0.5%</span><span>15%</span></div>
+        </div>
+        <button class="adv-toggle" id="m_advToggle" onclick="toggleAdv('m')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          Advanced options (taxes &amp; fees)
+        </button>
+        <div class="adv-fields" id="m_advFields">
+          <hr class="adv-divider">
+          <div class="field"><label class="field-label">Annual Property Tax</label><div class="input-group"><span class="input-prefix">$</span><input type="number" id="m_tax" class="has-pfx" value="5400" min="0" step="100"></div></div>
+          <div class="field"><label class="field-label">Annual Home Insurance</label><div class="input-group"><span class="input-prefix">$</span><input type="number" id="m_ins" class="has-pfx" value="1800" min="0" step="100"></div></div>
+          <div class="field" style="margin-bottom:0;"><label class="field-label">Monthly HOA Fee</label><div class="input-group"><span class="input-prefix">$</span><input type="number" id="m_hoa" class="has-pfx" value="0" min="0" step="25"></div></div>
+          <hr class="adv-divider">
+        </div>
+        <button class="calc-btn" onclick="calcMortgage()">Calculate My Payment</button>
+      </div>
+      <!-- Results -->
+      <div class="calc-card" style="display:flex;flex-direction:column;gap:20px;">
+        <div class="result-top">
+          <div class="rt-lbl">Est. Monthly Payment</div>
+          <div class="rt-val" id="m_monthly">$—</div>
+          <div class="rt-sub">principal &amp; interest + taxes &amp; fees</div>
+        </div>
+        <div class="bd-list">
+          <div class="bd-row"><div class="bd-dot" style="background:var(--forest)"></div><span class="bd-label">Principal &amp; Interest</span><span class="bd-val" id="m_bdPI">—</span></div>
+          <div class="bd-row"><div class="bd-dot" style="background:var(--sage)"></div><span class="bd-label">Property Tax (est.)</span><span class="bd-val" id="m_bdTax">—</span></div>
+          <div class="bd-row"><div class="bd-dot" style="background:var(--sand-dk)"></div><span class="bd-label">Home Insurance (est.)</span><span class="bd-val" id="m_bdIns">—</span></div>
+          <div class="bd-row" id="m_pmiRow" style="display:none;"><div class="bd-dot" style="background:var(--terra)"></div><span class="bd-label">PMI (est.) <small style="color:var(--stone);font-weight:400">&lt;20% down</small></span><span class="bd-val" id="m_bdPMI">—</span></div>
+          <div class="bd-row" id="m_hoaRow" style="display:none;"><div class="bd-dot" style="background:var(--stone)"></div><span class="bd-label">HOA Fee</span><span class="bd-val" id="m_bdHOA">—</span></div>
+        </div>
+        <div class="donut-wrap">
+          <canvas id="m_pie" width="140" height="140" style="flex-shrink:0;"></canvas>
+          <div class="donut-legend">
+            <div style="font-size:11px;font-weight:700;color:var(--warm-gray);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Over Loan Life</div>
+            <div class="dl-row"><div class="dl-sw" style="background:var(--forest)"></div><span class="dl-lbl">Principal</span><span class="dl-val" id="m_dlP">—</span><span class="dl-pct" id="m_dlPPct">—</span></div>
+            <div class="dl-row"><div class="dl-sw" style="background:var(--terra)"></div><span class="dl-lbl">Total Interest</span><span class="dl-val" id="m_dlI">—</span><span class="dl-pct" id="m_dlIPct">—</span></div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box"><div class="sl">Loan Amount</div><div class="sv forest" id="m_stLoan">—</div></div>
+          <div class="stat-box"><div class="sl">Total Interest</div><div class="sv terra" id="m_stInt">—</div></div>
+          <div class="stat-box"><div class="sl">Total Cost</div><div class="sv" id="m_stTotal">—</div></div>
+          <div class="stat-box"><div class="sl">Interest Share</div><div class="sv" id="m_stPct">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <section class="section section-alt">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:42px;">
+        <div class="section-eyebrow">Process</div>
+        <h2 class="section-title">How to use this calculator</h2>
+        <p class="section-sub" style="margin:0 auto;">Three steps to your estimate</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card"><div class="step-num">1</div><h4>Enter your home price</h4><p>Start with the purchase price of the home. Use the slider for fast adjustments between $50k and $3M.</p></div>
+        <div class="step-card"><div class="step-num">2</div><h4>Set down payment &amp; term</h4><p>The live percentage badge updates as you type. A 20%+ down payment eliminates PMI. Choose 10–30 year terms.</p></div>
+        <div class="step-card"><div class="step-num">3</div><h4>Review your breakdown</h4><p>See P&amp;I, taxes, insurance, and PMI separately. The donut chart shows your lifetime principal vs. interest split.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Factors -->
+  <section class="section">
+    <div class="container">
+      <div style="margin-bottom:40px;">
+        <div class="section-eyebrow">What Matters</div>
+        <h2 class="section-title">Factors that shape your payment</h2>
+        <p class="section-sub">Four key elements every homebuyer should understand</p>
+      </div>
+      <div class="factors-grid">
+        <div class="factor-card"><div class="factor-icon fi-terra">🏠</div><div><h4>Home Price &amp; Loan Amount</h4><p>Purchase price minus down payment equals your loan. Higher loan = higher monthly payments and more total interest.</p></div></div>
+        <div class="factor-card"><div class="factor-icon fi-forest">📅</div><div><h4>Loan Term</h4><p>30-year = lower monthly payment but more total interest. 15-year = higher payment but dramatically less interest paid overall.</p></div></div>
+        <div class="factor-card"><div class="factor-icon fi-sand">📈</div><div><h4>Interest Rate</h4><p>Even 0.5% difference can mean tens of thousands over a loan's life. Driven by credit score, down payment, and market conditions.</p></div></div>
+        <div class="factor-card"><div class="factor-icon fi-sage">💰</div><div><h4>Down Payment</h4><p>20%+ avoids PMI, reduces loan amount, and often earns a better rate. It also builds immediate home equity.</p></div></div>
+      </div>
+      <div class="rule-box" style="margin-top:28px;">
+        <div class="rule-box-text">
+          <h3>The 28/36 Rule of Thumb</h3>
+          <p>Housing costs should stay under <strong style="color:#fff;">28%</strong> of gross monthly income. Total debt under <strong style="color:#fff;">36%</strong>. Use this as your affordability guardrail.</p>
+        </div>
+        <div class="rule-pills">
+          <div class="rule-pill"><div class="rpv">28%</div><div class="rpl">Max housing</div></div>
+          <div class="rule-pill"><div class="rpv">36%</div><div class="rpl">Max total debt</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /tab-mortgage -->
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 2: AMORTIZATION CALCULATOR
+══════════════════════════════════════════════════════════ -->
+<div id="tab-amort" class="tab-page">
+
+  <div class="calc-wrap">
+    <div class="calc-header">
+      <div class="section-eyebrow">Amortization Calculator</div>
+      <h2 class="section-title">See exactly how your loan pays off</h2>
+      <p class="section-sub">Month-by-month and year-by-year breakdown of every payment</p>
+    </div>
+    <div class="amort-layout">
+
+      <!-- Form -->
+      <div class="calc-card">
+        <h3>📅 Loan Parameters</h3>
+        <div class="field">
+          <label class="field-label">Loan Amount</label>
+          <div class="input-group"><span class="input-prefix">$</span>
+            <input type="number" id="a_loan" class="has-pfx" value="360000" min="10000" step="5000">
+          </div>
+          <input type="range" id="a_loanRng" min="10000" max="3000000" step="10000" value="360000">
+          <div class="range-vals"><span>$10k</span><span>$3M</span></div>
+        </div>
+        <div class="field">
+          <label class="field-label">Annual Interest Rate</label>
+          <div class="input-group">
+            <input type="number" id="a_rate" class="has-sfx" value="6.89" min="0.1" max="20" step="0.05">
+            <span class="input-suffix">%</span>
+          </div>
+          <input type="range" id="a_rateRng" min="0.5" max="15" step="0.05" value="6.89">
+          <div class="range-vals"><span>0.5%</span><span>15%</span></div>
+        </div>
+        <div class="field">
+          <label class="field-label">Loan Term</label>
+          <div class="term-pills" id="a_termPills">
+            <button class="term-pill" data-yr="10">10 yr</button>
+            <button class="term-pill" data-yr="15">15 yr</button>
+            <button class="term-pill" data-yr="20">20 yr</button>
+            <button class="term-pill" data-yr="25">25 yr</button>
+            <button class="term-pill active" data-yr="30">30 yr</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Extra Monthly Payment (Optional)</label>
+          <div class="input-group"><span class="input-prefix">$</span>
+            <input type="number" id="a_extra" class="has-pfx" value="0" min="0" step="50">
+          </div>
+        </div>
+        <button class="calc-btn" onclick="calcAmort()">Build Schedule</button>
+
+        <!-- Summary stats -->
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;" id="a_summaryPanel">
+          <div class="amort-stat" style="border-left:3px solid var(--forest);">
+            <div class="al">Monthly Payment</div><div class="av forest" id="a_monthly">—</div>
+          </div>
+          <div class="amort-stat" style="border-left:3px solid var(--terra);">
+            <div class="al">Total Interest Paid</div><div class="av terra" id="a_totalInt">—</div>
+          </div>
+          <div class="amort-stat" style="border-left:3px solid var(--bark);">
+            <div class="al">Total Cost of Loan</div><div class="av bark" id="a_totalCost">—</div>
+          </div>
+          <div class="amort-stat" id="a_extraPanel" style="display:none;border-left:3px solid var(--sage);">
+            <div class="al">Interest Saved w/ Extra Payment</div><div class="av forest" id="a_intSaved">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts + Table -->
+      <div>
+        <!-- Stacked bar chart -->
+        <div class="chart-card">
+          <h4>Principal vs. Interest Over Time</h4>
+          <div class="chart-sub">Each bar shows how your annual payment splits between paying down the loan vs. paying interest</div>
+          <div class="chart-legend">
+            <div class="cl-item"><div class="cl-dot" style="background:var(--forest)"></div>Principal</div>
+            <div class="cl-item"><div class="cl-dot" style="background:var(--terra)"></div>Interest</div>
+          </div>
+          <canvas id="a_chart" height="200" style="width:100%;display:block;"></canvas>
+        </div>
+
+        <!-- Balance line chart -->
+        <div class="chart-card">
+          <h4>Remaining Balance Over Time</h4>
+          <div class="chart-sub">Your loan balance decreasing toward zero</div>
+          <canvas id="a_balChart" height="160" style="width:100%;display:block;"></canvas>
+        </div>
+
+        <!-- Schedule table -->
+        <div class="schedule-card">
+          <div class="schedule-head">
+            <h4>Amortization Schedule</h4>
+            <div class="view-toggle">
+              <button class="view-btn active" id="a_viewYear"  onclick="showSchedule('year')">Yearly</button>
+              <button class="view-btn"         id="a_viewMonth" onclick="showSchedule('month')">Monthly</button>
+            </div>
+          </div>
+          <div class="schedule-table-wrap">
+            <table id="a_schedTable">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">Period</th>
+                  <th>Payment</th>
+                  <th>Principal</th>
+                  <th>Interest</th>
+                  <th>Balance</th>
+                  <th>Cum. Interest</th>
+                </tr>
+              </thead>
+              <tbody id="a_schedBody">
+                <tr><td colspan="6" style="text-align:center;color:var(--warm-gray);padding:30px;">Build a schedule above to see the full breakdown</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <section class="section section-alt">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:40px;">
+        <div class="section-eyebrow">Understanding Your Schedule</div>
+        <h2 class="section-title">Why amortization matters</h2>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card"><div class="step-num">1</div><h4>Early payments are mostly interest</h4><p>In the first years of a mortgage, the vast majority of each payment goes toward interest, not reducing your balance. This is "front-loaded" amortization.</p></div>
+        <div class="step-card"><div class="step-num">2</div><h4>Extra payments have a big impact</h4><p>Even $100/month extra can shave years off your loan and save thousands in interest. Use the extra payment field to see the difference instantly.</p></div>
+        <div class="step-card"><div class="step-num">3</div><h4>Equity builds slowly at first</h4><p>Because early payments are interest-heavy, your equity grows slowly in the first years. Refinancing or selling early may mean you've paid more interest than principal.</p></div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /tab-amort -->
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 3: REFINANCE CALCULATOR
+══════════════════════════════════════════════════════════ -->
+<div id="tab-refi" class="tab-page">
+
+  <div class="calc-wrap">
+    <div class="calc-header">
+      <div class="section-eyebrow">Refinance Calculator</div>
+      <h2 class="section-title">Is refinancing worth it?</h2>
+      <p class="section-sub">Compare your current loan to a new one and find your break-even point</p>
+    </div>
+    <div class="refi-layout">
+
+      <!-- Form -->
+      <div class="calc-card">
+        <div class="refi-section-label">📋 Your Current Loan</div>
+        <div class="field">
+          <label class="field-label">Current Loan Balance</label>
+          <div class="input-group"><span class="input-prefix">$</span>
+            <input type="number" id="r_curBalance" class="has-pfx" value="320000" min="1000" step="5000">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Current Interest Rate</label>
+          <div class="input-group">
+            <input type="number" id="r_curRate" class="has-sfx" value="7.50" min="0.1" max="20" step="0.05">
+            <span class="input-suffix">%</span>
+          </div>
+          <input type="range" id="r_curRateRng" min="0.5" max="15" step="0.05" value="7.50">
+          <div class="range-vals"><span>0.5%</span><span>15%</span></div>
+        </div>
+        <div class="field">
+          <label class="field-label">Remaining Term</label>
+          <div class="term-pills" id="r_curTermPills">
+            <button class="term-pill" data-yr="5">5 yr</button>
+            <button class="term-pill" data-yr="10">10 yr</button>
+            <button class="term-pill" data-yr="15">15 yr</button>
+            <button class="term-pill" data-yr="20">20 yr</button>
+            <button class="term-pill active" data-yr="25">25 yr</button>
+            <button class="term-pill" data-yr="30">30 yr</button>
+          </div>
+        </div>
+
+        <div class="adv-divider" style="margin:20px 0;"></div>
+        <div class="refi-section-label" style="margin-top:0;">✨ New Loan Offer</div>
+
+        <div class="field">
+          <label class="field-label">New Interest Rate</label>
+          <div class="input-group">
+            <input type="number" id="r_newRate" class="has-sfx" value="6.25" min="0.1" max="20" step="0.05">
+            <span class="input-suffix">%</span>
+          </div>
+          <input type="range" id="r_newRateRng" min="0.5" max="15" step="0.05" value="6.25">
+          <div class="range-vals"><span>0.5%</span><span>15%</span></div>
+        </div>
+        <div class="field">
+          <label class="field-label">New Loan Term</label>
+          <div class="term-pills" id="r_newTermPills">
+            <button class="term-pill" data-yr="10">10 yr</button>
+            <button class="term-pill" data-yr="15">15 yr</button>
+            <button class="term-pill" data-yr="20">20 yr</button>
+            <button class="term-pill" data-yr="25">25 yr</button>
+            <button class="term-pill active" data-yr="30">30 yr</button>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field-label">Estimated Closing Costs</label>
+          <div class="input-group"><span class="input-prefix">$</span>
+            <input type="number" id="r_closing" class="has-pfx" value="5000" min="0" step="250">
+          </div>
+        </div>
+        <div style="margin-top:20px;">
+          <button class="calc-btn" onclick="calcRefi()">Compare Loans</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="refi-result-card">
+        <div class="refi-compare">
+          <div class="refi-box current">
+            <div class="rb-lbl">Current Payment</div>
+            <div class="rb-val" id="r_curPayment">$—</div>
+            <div class="rb-sub">per month</div>
+          </div>
+          <div class="refi-box new">
+            <div class="rb-lbl">New Payment</div>
+            <div class="rb-val" id="r_newPayment">$—</div>
+            <div class="rb-sub">per month</div>
+          </div>
+        </div>
+
+        <div class="savings-banner positive" id="r_savingsBanner">
+          <div class="sb-label" id="r_savingsLabel">Monthly Savings</div>
+          <div class="sb-val save" id="r_savingsVal">$—</div>
+          <div class="sb-sub" id="r_savingsSub">Estimated monthly savings after refinancing</div>
+        </div>
+
+        <div class="refi-stats">
+          <div class="refi-stat"><div class="rl">Current Total Interest</div><div class="rv terra" id="r_curTotalInt">—</div></div>
+          <div class="refi-stat"><div class="rl">New Total Interest</div><div class="rv forest" id="r_newTotalInt">—</div></div>
+          <div class="refi-stat"><div class="rl">Lifetime Interest Saved</div><div class="rv forest" id="r_lifetimeSaved">—</div></div>
+          <div class="refi-stat"><div class="rl">5-Year Net Savings</div><div class="rv" id="r_5yrSavings">—</div></div>
+          <div class="refi-stat"><div class="rl">10-Year Net Savings</div><div class="rv" id="r_10yrSavings">—</div></div>
+          <div class="refi-stat"><div class="rl">Closing Costs</div><div class="rv terra" id="r_closingDisplay">—</div></div>
+        </div>
+
+        <div class="breakeven-bar">
+          <div class="be-label">Break-Even Point (months to recoup closing costs)</div>
+          <div class="be-track"><div class="be-fill" id="r_beBar" style="width:0%"></div></div>
+          <div class="be-nums"><span>0 mo</span><span id="r_beFull">60 mo</span></div>
+          <div class="be-point" id="r_bePoint">Enter details above to calculate</div>
+        </div>
+
+        <div class="refi-notice" id="r_notice">
+          Enter your current loan details and new loan offer above, then click <strong>Compare Loans</strong> to see a full analysis.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <section class="section section-alt">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:40px;">
+        <div class="section-eyebrow">Refinancing Guide</div>
+        <h2 class="section-title">When does refinancing make sense?</h2>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card"><div class="step-num">1</div><h4>Rate drops by 1%+</h4><p>A common rule of thumb: refinancing is worth considering when your new rate is at least 1% lower than your current rate. Even 0.5% can make sense depending on your loan size.</p></div>
+        <div class="step-card"><div class="step-num">2</div><h4>You plan to stay long enough</h4><p>Closing costs typically run 2–5% of the loan amount. Make sure you'll stay in the home long enough after the break-even point to capture the monthly savings.</p></div>
+        <div class="step-card"><div class="step-num">3</div><h4>Your credit has improved</h4><p>A better credit score since origination may qualify you for a lower rate even without a market rate change. A 50-point improvement can meaningfully lower your rate.</p></div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /tab-refi -->
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: HOME DECISION ENGINE
+══════════════════════════════════════════════════════════ -->
+<div class="tab-page" id="tab-hde">
+  <section class="section">
+    <div class="hde-wrap">
+
+      <!-- ── INPUT STATE ── -->
+      <div id="hde-state-input">
+        <div class="hde-input-card">
+          <div style="font-size:48px;margin-bottom:16px;">🏠</div>
+          <h2>Home Decision Engine</h2>
+          <p>Enter a US property address to receive an independent Home Score, true monthly cost estimate, and key insights to help you decide with confidence.</p>
+          <div class="hde-addr-wrap">
+            <input class="hde-addr-inp" id="hde-addr" type="text" placeholder="e.g. 742 Evergreen Terrace, Springfield, IL" autocomplete="off" oninput="hdeOnInput(this.value)" onkeydown="hdeKeydown(event)" />
+            <div class="hde-autocomplete" id="hde-ac" style="display:none;"></div>
+          </div>
+          <button class="hde-btn-analyze" onclick="hdeAnalyze()">Analyze This Home</button>
+          <p class="hde-disclaimer-sm">All data is simulated for demonstration. No real property data, crime records, or school ratings are used. Results do not constitute financial or legal advice.</p>
+        </div>
+      </div>
+
+      <!-- ── ERROR STATE ── -->
+      <div class="hde-error-wrap" id="hde-state-error" style="display:none;">
+        <div class="hde-input-card">
+          <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+          <h2 style="color:var(--terra);">Analysis Failed</h2>
+          <p id="hde-error-msg">Something went wrong. Please try again.</p>
+          <button class="hde-btn-analyze" onclick="hdeReset()" style="margin-top:20px;">← Try Again</button>
+        </div>
+      </div>
+
+      <!-- ── LOADING STATE ── -->
+      <div class="hde-loading" id="hde-state-loading">
+        <div class="hde-spinner"></div>
+        <h3>Analyzing property…</h3>
+        <p id="hde-loading-msg">Connecting to data sources</p>
+        <div class="hde-progress-steps" id="hde-steps">
+          <div class="hde-step" id="hde-s1"><div class="hde-step-icon">1</div> Fetching property records</div>
+          <div class="hde-step" id="hde-s2"><div class="hde-step-icon">2</div> Retrieving market comparables</div>
+          <div class="hde-step" id="hde-s3"><div class="hde-step-icon">3</div> Checking public safety data</div>
+          <div class="hde-step" id="hde-s4"><div class="hde-step-icon">4</div> Pulling school ratings</div>
+          <div class="hde-step" id="hde-s5"><div class="hde-step-icon">5</div> Computing Home Score</div>
+        </div>
+      </div>
+
+      <!-- ── RESULTS STATE ── -->
+      <div class="hde-results" id="hde-state-results">
+        <div class="hde-results-header">
+          <div>
+            <h2>Home Analysis Report</h2>
+            <div class="hde-results-addr" id="hde-res-addr"></div>
+          </div>
+          <button class="hde-back-btn" onclick="hdeReset()">← New Search</button>
+        </div>
+
+        <!-- Score ring + breakdown -->
+        <div class="hde-score-row">
+          <div class="hde-ring-wrap">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <circle class="hde-ring-bg" cx="70" cy="70" r="58"/>
+              <circle class="hde-ring-fg" id="hde-ring" cx="70" cy="70" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+            </svg>
+            <div class="hde-ring-center">
+              <div class="hde-ring-score" id="hde-score-num">--</div>
+              <div class="hde-ring-label">/ 100</div>
+            </div>
+          </div>
+          <div class="hde-score-info">
+            <h3 id="hde-verdict-title">--</h3>
+            <p class="hde-score-verdict" id="hde-verdict-body"></p>
+            <div class="hde-breakdown" id="hde-breakdown"></div>
+          </div>
+        </div>
+
+        <!-- True Monthly Cost -->
+        <div class="hde-cost-card">
+          <h4>📊 Estimated True Monthly Cost</h4>
+          <div class="hde-cost-rows" id="hde-cost-rows"></div>
+        </div>
+
+        <!-- Key Insights -->
+        <h4 style="font-size:14px;font-weight:800;color:var(--espresso);margin-bottom:12px;">💡 Key Insights</h4>
+        <div class="hde-insights-grid" id="hde-insights"></div>
+
+        <!-- Risk Flags -->
+        <div class="hde-flags-card">
+          <h4>⚑ Risk Flags</h4>
+          <div class="hde-flags-list" id="hde-flags"></div>
+        </div>
+
+        <!-- Property details + Registry density -->
+        <div class="hde-lower">
+          <div class="hde-prop-card">
+            <h4>🏡 Property Details</h4>
+            <div class="hde-prop-rows" id="hde-prop-rows"></div>
+          </div>
+          <div class="hde-reg-card">
+            <h4>📍 Registry Density</h4>
+            <div class="hde-reg-number" id="hde-reg-num">--</div>
+            <div class="hde-reg-unit">per 100,000 residents (3-mile radius)</div>
+            <div class="hde-reg-bar-wrap"><div class="hde-reg-bar" id="hde-reg-bar" style="width:0%"></div></div>
+            <p class="hde-reg-note" id="hde-reg-note"></p>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="hde-disclaimer-box">
+          <strong>Important Disclaimer:</strong> This report is generated entirely from simulated, seeded data for demonstration purposes. No real property records, crime statistics, school performance data, sex offender registry information, or market data are used or accessed. This tool does not constitute financial, legal, or real estate advice. Always consult licensed professionals and conduct independent due diligence before making any real estate decision. MossRock is not affiliated with ATTOM, GreatSchools, the FBI, or any government data provider.
+        </div>
+      </div><!-- /hde-state-results -->
+
+    </div><!-- /hde-wrap -->
+  </section>
+</div><!-- /tab-hde -->
+
+<!-- ══════════════════════════════════════════════════════════
+     SHARED: FAQ + CTA
+══════════════════════════════════════════════════════════ -->
+<section class="section" id="faq">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <div class="section-eyebrow">FAQ</div>
+      <h2 class="section-title">Common questions</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">What is included in my monthly mortgage payment?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>A typical mortgage payment includes PITI: Principal (reduces your balance), Interest (cost of borrowing), Taxes (property taxes in escrow), and Insurance (homeowner's insurance and PMI if your down payment is under 20%).</p></div></div>
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">How does a 15-year vs 30-year mortgage compare?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>A 15-year mortgage carries a lower rate and you pay 40–60% less total interest, but monthly payments are significantly higher. A 30-year loan offers cash flow flexibility at the cost of more total interest paid.</p></div></div>
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">What is PMI and how do I avoid it?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>PMI (Private Mortgage Insurance) is required when your down payment is below 20%. It costs ~0.5–1.5% of the loan per year. Avoid it by putting 20%+ down, or use a VA/USDA loan which don't require PMI.</p></div></div>
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">When is refinancing worth it?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>Refinancing makes sense when your new rate is meaningfully lower (typically 0.5–1%+), you plan to stay in the home past your break-even point, and closing costs are reasonable relative to monthly savings. Use our Refinance Calculator to find your exact break-even.</p></div></div>
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">What is amortization and why does it matter?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>Amortization is the process of spreading loan payments over time. Early payments are mostly interest; later payments are mostly principal. Understanding your amortization schedule helps you see when you build real equity and how extra payments accelerate payoff.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="cta-banner">
+      <h2>Ready to take the next step?</h2>
+      <p>Use your estimates to start conversations with lenders and find the best rate for your situation.</p>
+      <div class="cta-btns">
+        <button class="btn-primary" onclick="switchTab('mortgage')">Try the Calculator ↑</button>
+        <button class="btn-outline" onclick="switchTab('refi')">Check Refinance Savings</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">Moss<span>Rock</span></div>
+      <p class="footer-tagline">Simple, honest mortgage tools built for people, not banks.</p>
+    </div>
+    <div class="footer-col"><h5>Tools</h5><ul>
+      <li><a href="#" onclick="switchTab('mortgage');return false;">Mortgage Calculator</a></li>
+      <li><a href="#" onclick="switchTab('amort');return false;">Amortization Schedule</a></li>
+      <li><a href="#" onclick="switchTab('refi');return false;">Refinance Calculator</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Learn</h5><ul>
+      <li><a href="#">First-Time Buyer Guide</a></li>
+      <li><a href="#">Mortgage Types</a></li>
+      <li><a href="#">Down Payment Tips</a></li>
+      <li><a href="#">Credit Score Guide</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Company</h5><ul>
+      <li><a href="#">About MossRock</a></li>
+      <li><a href="#">Privacy Policy</a></li>
+      <li><a href="#">Terms of Use</a></li>
+      <li><a href="#">Contact Us</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 MossRock. For informational purposes only. Not financial advice.</p>
+    <p>Calculations use standard amortization formula. Rates are illustrative.</p>
+  </div>
+</footer>
+
+<script>
+// ════════════════════════════════════════════════════════
+// TAB SYSTEM
+// ════════════════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-bar-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'amort') { setTimeout(calcAmort, 100); }
+  if (name === 'refi')  { setTimeout(calcRefi,  100); }
+  if (name === 'hde')   { hdeReset(); }
+}
+
+// ════════════════════════════════════════════════════════
+// SHARED HELPERS
+// ════════════════════════════════════════════════════════
+const fmtD  = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtS  = n => n >= 1e6 ? '$' + (n/1e6).toFixed(2) + 'M' : n >= 1e3 ? '$' + (n/1e3).toFixed(1) + 'k' : '$' + Math.round(n).toLocaleString('en-US');
+const PI    = (P, r, n) => r === 0 ? P/n : P * (r * Math.pow(1+r,n)) / (Math.pow(1+r,n)-1);
+
+function syncRng(inpId, rngId, cb) {
+  const i = document.getElementById(inpId), r = document.getElementById(rngId);
+  if (!i || !r) return;
+  i.addEventListener('input', () => { r.value = i.value; cb && cb(); });
+  r.addEventListener('input', () => { i.value = r.value; cb && cb(); });
+}
+function bindTermPills(containerId, storeKey, cb) {
+  document.querySelectorAll('#' + containerId + ' .term-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#' + containerId + ' .term-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      window[storeKey] = parseInt(pill.dataset.yr);
+      cb && cb();
+    });
+  });
+}
+function activeTermVal(containerId) {
+  const a = document.querySelector('#' + containerId + ' .term-pill.active');
+  return a ? parseInt(a.dataset.yr) : 30;
+}
+
+// ════════════════════════════════════════════════════════
+// TAB 1 — MORTGAGE CALCULATOR
+// ════════════════════════════════════════════════════════
+const mHP  = () => document.getElementById('m_homePrice');
+const mDA  = () => document.getElementById('m_downAmt');
+const mDR  = () => document.getElementById('m_downRng');
+
+function mUpdateDownFromPct() {
+  const pct = parseFloat(mDR().value) / 100;
+  mDA().value = Math.round((parseFloat(mHP().value) || 0) * pct);
+  document.getElementById('m_downPct').textContent = Math.round(parseFloat(mDR().value)) + '%';
+  calcMortgage();
+}
+function mUpdateDownFromAmt() {
+  const hp  = parseFloat(mHP().value) || 1;
+  const pct = Math.min(100, Math.round((parseFloat(mDA().value)||0) / hp * 100));
+  mDR().value = pct;
+  document.getElementById('m_downPct').textContent = pct + '%';
+  calcMortgage();
+}
+
+syncRng('m_homePrice', 'm_homePriceRng', mUpdateDownFromPct);
+syncRng('m_rate', 'm_rateRng', calcMortgage);
+mDA().addEventListener('input', mUpdateDownFromAmt);
+mDR().addEventListener('input', mUpdateDownFromPct);
+bindTermPills('m_termPills', '_mTerm', calcMortgage);
+document.querySelectorAll('#m_advFields input').forEach(i => i.addEventListener('input', calcMortgage));
+
+function toggleAdv(prefix) {
+  document.getElementById(prefix+'_advToggle').classList.toggle('open');
+  document.getElementById(prefix+'_advFields').classList.toggle('open');
+  if (prefix === 'm') calcMortgage();
+}
+
+let mPieRaf = null;
+function calcMortgage() {
+  const hp   = parseFloat(mHP().value) || 0;
+  const down = parseFloat(mDA().value) || 0;
+  const P    = Math.max(0, hp - down);
+  const r    = (parseFloat(document.getElementById('m_rate').value) || 0) / 100 / 12;
+  const n    = activeTermVal('m_termPills') * 12;
+  const tax  = (parseFloat(document.getElementById('m_tax').value)  || 0) / 12;
+  const ins  = (parseFloat(document.getElementById('m_ins').value)  || 0) / 12;
+  const hoa  = parseFloat(document.getElementById('m_hoa').value)   || 0;
+  if (P <= 0) return;
+  const pi   = PI(P, r, n);
+  const pmi  = (hp > 0 && down/hp < 0.2) ? P * 0.008 / 12 : 0;
+  const total = pi + tax + ins + pmi + hoa;
+  const tPaid = pi * n, tInt = tPaid - P;
+  const iPct = (tInt/tPaid*100).toFixed(1), pPct = (P/tPaid*100).toFixed(1);
+
+  document.getElementById('m_monthly').textContent = fmtD(total);
+  document.getElementById('m_bdPI').textContent    = fmtD(pi);
+  document.getElementById('m_bdTax').textContent   = fmtD(tax);
+  document.getElementById('m_bdIns').textContent   = fmtD(ins);
+  document.getElementById('m_bdPMI').textContent   = fmtD(pmi);
+  document.getElementById('m_bdHOA').textContent   = fmtD(hoa);
+  document.getElementById('m_pmiRow').style.display = pmi > 0 ? 'flex' : 'none';
+  document.getElementById('m_hoaRow').style.display = hoa > 0 ? 'flex' : 'none';
+  document.getElementById('m_dlP').textContent     = fmtS(P);    document.getElementById('m_dlPPct').textContent = pPct+'%';
+  document.getElementById('m_dlI').textContent     = fmtS(tInt); document.getElementById('m_dlIPct').textContent = iPct+'%';
+  document.getElementById('m_stLoan').textContent  = fmtS(P);
+  document.getElementById('m_stInt').textContent   = fmtS(tInt);
+  document.getElementById('m_stTotal').textContent = fmtS(tPaid);
+  document.getElementById('m_stPct').textContent   = iPct+'%';
+  drawDonut('m_pie', P, tInt);
+}
+
+function drawDonut(id, principal, interest) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const cx = cv.width/2, cy = cv.height/2, R = 56, iR = 34;
+  const tot = principal + interest;
+  const tP  = (principal/tot) * (Math.PI*2 - 0.06);
+  const tI  = (interest/tot)  * (Math.PI*2 - 0.06);
+  cancelAnimationFrame(mPieRaf);
+  let prog = 0;
+  const ease = t => 1 - Math.pow(1-t, 3);
+  function frame() {
+    prog = Math.min(prog+1, 48); const t = ease(prog/48);
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const ps = -Math.PI/2+0.03, pe = ps + tP*t;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,ps,pe); ctx.closePath(); ctx.fillStyle='#3D6B4A'; ctx.fill();
+    const is = pe+0.03, ie = is + tI*t;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,is,ie); ctx.closePath(); ctx.fillStyle='#C1714F'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,iR,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    if (prog===48) {
+      ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#4A3728'; ctx.font='bold 10px Segoe UI'; ctx.fillText('SPLIT',cx,cy-6);
+      ctx.fillStyle='#8C7B6E'; ctx.font='9px Segoe UI'; ctx.fillText('loan life',cx,cy+6);
+    }
+    if (prog<48) mPieRaf = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ════════════════════════════════════════════════════════
+// TAB 2 — AMORTIZATION CALCULATOR
+// ════════════════════════════════════════════════════════
+syncRng('a_loan', 'a_loanRng', calcAmort);
+syncRng('a_rate', 'a_rateRng', calcAmort);
+bindTermPills('a_termPills', '_aTerm', calcAmort);
+document.getElementById('a_extra').addEventListener('input', calcAmort);
+
+let aSchedule = []; // full monthly data
+let aView = 'year';
+
+function calcAmort() {
+  const P     = parseFloat(document.getElementById('a_loan').value) || 0;
+  const r     = (parseFloat(document.getElementById('a_rate').value) || 0) / 100 / 12;
+  const n     = activeTermVal('a_termPills') * 12;
+  const extra = parseFloat(document.getElementById('a_extra').value) || 0;
+  if (P <= 0) return;
+  const base = PI(P, r, n);
+  const monthly = base + extra;
+
+  // Build full schedule
+  aSchedule = [];
+  let balance = P, cumInt = 0, cumPrin = 0;
+  for (let mo = 1; mo <= n && balance > 0.01; mo++) {
+    const intPmt  = balance * r;
+    let   prinPmt = Math.min(monthly - intPmt, balance);
+    if (prinPmt < 0) prinPmt = 0;
+    balance   = Math.max(0, balance - prinPmt);
+    cumInt   += intPmt; cumPrin += prinPmt;
+    aSchedule.push({ mo, pmt: prinPmt+intPmt, prin: prinPmt, int: intPmt, balance, cumInt, cumPrin });
+  }
+
+  const totalInt   = aSchedule.reduce((s,r) => s+r.int,  0);
+  const totalCost  = aSchedule.reduce((s,r) => s+r.pmt, 0);
+  const baseInt    = PI(P,r,n)*n - P;
+  const intSaved   = Math.max(0, baseInt - totalInt);
+
+  document.getElementById('a_monthly').textContent   = fmtD(base);
+  document.getElementById('a_totalInt').textContent  = fmtS(totalInt);
+  document.getElementById('a_totalCost').textContent = fmtS(totalCost);
+  const ep = document.getElementById('a_extraPanel');
+  ep.style.display = extra > 0 ? 'block' : 'none';
+  document.getElementById('a_intSaved').textContent  = fmtS(intSaved) + ' saved';
+
+  showSchedule(aView);
+  setTimeout(() => { drawAmortBars(); drawBalanceLine(); }, 0);
+}
+
+function showSchedule(view) {
+  aView = view;
+  document.getElementById('a_viewYear').classList.toggle('active',  view === 'year');
+  document.getElementById('a_viewMonth').classList.toggle('active', view === 'month');
+  const tbody = document.getElementById('a_schedBody');
+  if (!aSchedule.length) return;
+
+  let rows = [];
+  if (view === 'year') {
+    // Aggregate by year
+    const years = Math.ceil(aSchedule.length / 12);
+    for (let y = 0; y < years; y++) {
+      const slice = aSchedule.slice(y*12, y*12+12);
+      const prin = slice.reduce((s,r)=>s+r.prin, 0);
+      const int  = slice.reduce((s,r)=>s+r.int,  0);
+      const pmt  = slice.reduce((s,r)=>s+r.pmt,  0);
+      const bal  = slice[slice.length-1].balance;
+      const cumI = slice[slice.length-1].cumInt;
+      rows.push(`<tr>
+        <td>Year ${y+1}</td>
+        <td>${fmtD(pmt/slice.length)}/mo</td>
+        <td class="principal">${fmtS(prin)}</td>
+        <td class="interest">${fmtS(int)}</td>
+        <td class="balance">${fmtS(bal)}</td>
+        <td>${fmtS(cumI)}</td>
+      </tr>`);
+    }
+  } else {
+    rows = aSchedule.map(r => `<tr>
+      <td>Month ${r.mo}</td>
+      <td>${fmtD(r.pmt)}</td>
+      <td class="principal">${fmtD(r.prin)}</td>
+      <td class="interest">${fmtD(r.int)}</td>
+      <td class="balance">${fmtS(r.balance)}</td>
+      <td>${fmtS(r.cumInt)}</td>
+    </tr>`);
+  }
+  tbody.innerHTML = rows.join('');
+}
+
+function drawAmortBars() {
+  const cv = document.getElementById('a_chart');
+  if (!cv || !aSchedule.length) return;
+  cv.width = cv.offsetWidth || 600;
+  const ctx = cv.getContext('2d');
+  const w = cv.width, h = cv.height;
+  const pad = { top: 14, right: 14, bottom: 28, left: 52 };
+  const years = Math.ceil(aSchedule.length / 12);
+  const data  = Array.from({length: years}, (_,y) => {
+    const s = aSchedule.slice(y*12, y*12+12);
+    return { prin: s.reduce((a,r)=>a+r.prin,0), int: s.reduce((a,r)=>a+r.int,0) };
+  });
+  const maxY  = Math.max(...data.map(d => d.prin + d.int));
+  const bw    = (w - pad.left - pad.right) / years - 3;
+  const scale = (h - pad.top - pad.bottom) / maxY;
+  ctx.clearRect(0, 0, w, h);
+  // Grid
+  ctx.strokeStyle='rgba(74,55,40,0.07)'; ctx.lineWidth=1;
+  for (let i=1; i<=4; i++) {
+    const y = pad.top + (h-pad.top-pad.bottom)*i/4;
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(w-pad.right,y); ctx.stroke();
+    ctx.fillStyle='#B5A490'; ctx.font='10px Segoe UI'; ctx.textAlign='right';
+    ctx.fillText(fmtS(maxY*(1-i/4)), pad.left-4, y+4);
+  }
+  // Bars
+  data.forEach((d, i) => {
+    const x    = pad.left + i * (bw + 3);
+    const hInt = d.int  * scale;
+    const hPri = d.prin * scale;
+    const yI   = h - pad.bottom - hInt;
+    const yP   = yI - hPri;
+    ctx.fillStyle = '#C1714F'; ctx.beginPath(); ctx.roundRect(x, yI, bw, hInt, [0,0,3,3]); ctx.fill();
+    ctx.fillStyle = '#3D6B4A'; ctx.beginPath(); ctx.roundRect(x, yP, bw, hPri, [3,3,0,0]); ctx.fill();
+    if (years <= 30 && i % Math.max(1, Math.floor(years/6)) === 0) {
+      ctx.fillStyle='#B5A490'; ctx.font='9px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText('Y'+(i+1), x+bw/2, h-pad.bottom+12);
+    }
+  });
+}
+
+function drawBalanceLine() {
+  const cv = document.getElementById('a_balChart');
+  if (!cv || !aSchedule.length) return;
+  cv.width = cv.offsetWidth || 600;
+  const ctx = cv.getContext('2d');
+  const w = cv.width, h = cv.height;
+  const pad = { top: 10, right: 14, bottom: 24, left: 56 };
+  const years = Math.ceil(aSchedule.length / 12);
+  const pts   = [aSchedule[0].balance + aSchedule[0].prin]; // approx starting balance
+  for (let y = 0; y < years; y++) {
+    const last = aSchedule[Math.min((y+1)*12-1, aSchedule.length-1)];
+    pts.push(last.balance);
+  }
+  const initBal = parseFloat(document.getElementById('a_loan').value) || 1;
+  const getX = i => pad.left + (i/(pts.length-1)) * (w-pad.left-pad.right);
+  const getY = v => pad.top + ((initBal-v)/initBal) * (h-pad.top-pad.bottom);
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle='rgba(74,55,40,0.07)'; ctx.lineWidth=1;
+  for (let i=1;i<=3;i++){
+    const y=pad.top+(h-pad.top-pad.bottom)*i/3;
+    ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(w-pad.right,y);ctx.stroke();
+    ctx.fillStyle='#B5A490';ctx.font='10px Segoe UI';ctx.textAlign='right';
+    ctx.fillText(fmtS(initBal*(1-i/3)),pad.left-4,y+4);
+  }
+  const grad = ctx.createLinearGradient(0, pad.top, 0, h-pad.bottom);
+  grad.addColorStop(0,'rgba(61,107,74,0.25)'); grad.addColorStop(1,'rgba(61,107,74,0)');
+  ctx.beginPath(); ctx.moveTo(getX(0), getY(pts[0]));
+  pts.forEach((v,i) => { if(i) ctx.lineTo(getX(i), getY(v)); });
+  ctx.lineTo(getX(pts.length-1), h-pad.bottom); ctx.lineTo(getX(0), h-pad.bottom); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(getX(0), getY(pts[0]));
+  pts.forEach((v,i) => { if(i) ctx.lineTo(getX(i), getY(v)); });
+  ctx.strokeStyle='#3D6B4A'; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+}
+
+// ════════════════════════════════════════════════════════
+// TAB 3 — REFINANCE CALCULATOR
+// ════════════════════════════════════════════════════════
+syncRng('r_curRate', 'r_curRateRng', calcRefi);
+syncRng('r_newRate', 'r_newRateRng', calcRefi);
+bindTermPills('r_curTermPills', '_rCurTerm', calcRefi);
+bindTermPills('r_newTermPills', '_rNewTerm', calcRefi);
+['r_curBalance','r_closing'].forEach(id => document.getElementById(id).addEventListener('input', calcRefi));
+
+function calcRefi() {
+  const P        = parseFloat(document.getElementById('r_curBalance').value) || 0;
+  const curRate  = (parseFloat(document.getElementById('r_curRate').value) || 0) / 100 / 12;
+  const curN     = activeTermVal('r_curTermPills') * 12;
+  const newRate  = (parseFloat(document.getElementById('r_newRate').value) || 0) / 100 / 12;
+  const newN     = activeTermVal('r_newTermPills') * 12;
+  const closing  = parseFloat(document.getElementById('r_closing').value) || 0;
+  if (P <= 0) return;
+
+  const curPmt   = PI(P, curRate, curN);
+  const newPmt   = PI(P, newRate, newN);
+  const curTotal = curPmt * curN;
+  const newTotal = newPmt * newN;
+  const curInt   = curTotal - P;
+  const newInt   = newTotal - P;
+  const mSaving  = curPmt - newPmt;
+  const lifeSave = curInt - newInt;
+  const be       = mSaving > 0 ? Math.ceil(closing / mSaving) : Infinity;
+  const yr5Save  = mSaving > 0 ? mSaving * 60 - closing : -closing;
+  const yr10Save = mSaving > 0 ? mSaving * 120 - closing : -closing;
+
+  document.getElementById('r_curPayment').textContent   = fmtD(curPmt);
+  document.getElementById('r_newPayment').textContent   = fmtD(newPmt);
+  document.getElementById('r_curTotalInt').textContent  = fmtS(curInt);
+  document.getElementById('r_newTotalInt').textContent  = fmtS(newInt);
+  document.getElementById('r_closingDisplay').textContent = fmtS(closing);
+  document.getElementById('r_lifetimeSaved').textContent  = fmtS(Math.abs(lifeSave));
+  document.getElementById('r_5yrSavings').textContent   = (yr5Save >= 0 ? '+' : '') + fmtS(yr5Save);
+  document.getElementById('r_10yrSavings').textContent  = (yr10Save >= 0 ? '+' : '') + fmtS(yr10Save);
+  document.getElementById('r_5yrSavings').className     = 'rv ' + (yr5Save >= 0 ? 'forest' : 'terra');
+  document.getElementById('r_10yrSavings').className    = 'rv ' + (yr10Save >= 0 ? 'forest' : 'terra');
+
+  const sb     = document.getElementById('r_savingsBanner');
+  const sbVal  = document.getElementById('r_savingsVal');
+  const sbLbl  = document.getElementById('r_savingsLabel');
+  const sbSub  = document.getElementById('r_savingsSub');
+  if (mSaving >= 0) {
+    sb.className = 'savings-banner positive';
+    sbLbl.textContent = 'Monthly Savings';
+    sbVal.className = 'sb-val save';
+    sbVal.textContent = fmtD(mSaving);
+    sbSub.textContent = 'Lower payment after refinancing';
+  } else {
+    sb.className = 'savings-banner negative';
+    sbLbl.textContent = 'Monthly Increase';
+    sbVal.className = 'sb-val cost';
+    sbVal.textContent = fmtD(-mSaving);
+    sbSub.textContent = 'Higher payment — consider a longer new term';
+  }
+
+  // Break-even bar
+  const beMonths = isFinite(be) ? be : 0;
+  const maxBe    = Math.max(beMonths * 1.5, 60);
+  const pct      = isFinite(be) ? Math.min(beMonths / maxBe * 100, 100) : 0;
+  document.getElementById('r_beBar').style.width   = pct + '%';
+  document.getElementById('r_beFull').textContent  = Math.round(maxBe) + ' mo';
+  document.getElementById('r_bePoint').textContent = isFinite(be) && be > 0
+    ? `Break-even at month ${be} (${(be/12).toFixed(1)} years)`
+    : mSaving <= 0
+    ? 'New loan does not reduce monthly payment'
+    : 'No closing costs — instant savings';
+
+  // Notice
+  const notice = document.getElementById('r_notice');
+  if (isFinite(be) && be > 0) {
+    notice.textContent = mSaving > 0
+      ? `You need to stay in your home at least ${be} months (${(be/12).toFixed(1)} yrs) after refinancing to recover the $${closing.toLocaleString()} in closing costs.`
+      : `The new rate doesn't lower your monthly payment. Consider a longer loan term or wait for rates to drop further.`;
+  } else {
+    notice.textContent = closing === 0
+      ? 'With no closing costs, refinancing is beneficial immediately if your monthly payment decreases.'
+      : 'Enter valid loan details above to see your refinance analysis.';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// SHARED FAQ
+// ════════════════════════════════════════════════════════
+function toggleFaq(btn) {
+  const ans = btn.nextElementSibling, isOpen = btn.classList.contains('open');
+  document.querySelectorAll('.faq-q.open').forEach(q => { q.classList.remove('open'); q.nextElementSibling.classList.remove('open'); });
+  if (!isOpen) { btn.classList.add('open'); ans.classList.add('open'); }
+}
+
+// ════════════════════════════════════════════════════════
+// HOME DECISION ENGINE
+// ════════════════════════════════════════════════════════
+
+const HDE_API = '/api/analyze-home';
+
+// ── Browser-side engine ───────────────────────────────────────────────────────
+// Mirrors the Node backend exactly. Used when the server is not running.
+// When the server IS available the fetch() result wins instead.
+const HDE_ENGINE = (() => {
+  // RNG (utils/rng.js)
+  function createRng(seed) {
+    let s = seed >>> 0;
+    return () => { s = (Math.imul(1664525, s) + 1013904223) >>> 0; return s / 0xFFFFFFFF; };
+  }
+  function strSeed(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (Math.imul(h, 0x01000193)) >>> 0; }
+    return h;
+  }
+  const rInt   = (rng, lo, hi)      => Math.floor(rng() * (hi - lo + 1)) + lo;
+  const rFloat = (rng, lo, hi, dp)  => parseFloat((rng() * (hi - lo) + lo).toFixed(dp ?? 2));
+  const pick   = (rng, arr)         => arr[Math.floor(rng() * arr.length)];
+  const mix    = (rng, arr)         => [...arr].sort(() => rng() - 0.5);
+
+  // Services — identical logic to services/*.js
+  function svcProperty(rng) {
+    const listPrice = rInt(rng, 280000, 850000);
+    const estValue  = Math.round(listPrice * rFloat(rng, 0.93, 1.08));
+    const beds = rInt(rng, 2, 5), baths = rFloat(rng, 1.0, 3.5, 1);
+    const sqft = rInt(rng, 900, 3800), yearBuilt = rInt(rng, 1955, 2020);
+    const taxRate = rFloat(rng, 0.8, 2.4, 2), annTax = Math.round(estValue * taxRate / 100);
+    return { listPrice, estValue, beds, baths, sqft, yearBuilt, taxRate, annTax };
+  }
+  function svcMonthlyCost(p) {
+    const r = 6.89/100/12, n = 360, loan = p.listPrice * 0.80;
+    const pi          = Math.round(loan * (r * Math.pow(1+r,n)) / (Math.pow(1+r,n)-1));
+    const tax         = Math.round(p.annTax / 12);
+    const insurance   = Math.round(p.listPrice * 0.0045 / 12);
+    const maintenance = Math.round(p.listPrice * 0.01 / 12);
+    return { pi, tax, insurance, maintenance, total: pi + tax + insurance + maintenance };
+  }
+  function svcCrime(rng) {
+    return { violentPer1k: rFloat(rng,0.8,12.0,1), propertyPer1k: rFloat(rng,5.0,48.0,1),
+             trend: pick(rng,['declining','stable','slight increase','increasing']) };
+  }
+  function svcSchool(rng) {
+    return { rating: pick(rng,['Below Average','Average','Above Average','Excellent']),
+             nearestMiles: rFloat(rng,0.2,3.0,1), numInRadius: rInt(rng,1,10) };
+  }
+  function svcMarket(rng) {
+    return { growth24mo: rFloat(rng,-3.0,15.0,1),
+             inventory:  pick(rng,['tightening','stable','slightly elevated','high']),
+             daysOnMarket: rInt(rng,5,80), priceToRent: rInt(rng,13,36),
+             areaMedianMonthlyIncome: rInt(rng,4500,12500) };
+  }
+  function svcRegistry(rng) {
+    const per100k = rInt(rng,4,72);
+    return { per100k,
+             note:   per100k < 20 ? 'Density is in the lower range compared to national averages.'
+                   : per100k < 45 ? 'Density is near the national median.'
+                   : 'Density is above the national average. Review public registry data directly.',
+             barPct: Math.min(per100k/80*100,100),
+             color:  per100k < 20 ? '#3D6B4A' : per100k < 45 ? '#C9B48E' : '#C1714F' };
+  }
+
+  // Scoring engine — identical formulas to utils/scoringEngine.js
+  const clamp = (v,lo,hi) => Math.min(hi, Math.max(lo, v));
+  function lerp(x, segs) {
+    if (x <= segs[0][0]) return segs[0][1];
+    if (x >= segs[segs.length-1][0]) return segs[segs.length-1][1];
+    for (let i = 1; i < segs.length; i++) {
+      const [x0,y0] = segs[i-1], [x1,y1] = segs[i];
+      if (x <= x1) return y0 + (y1-y0)*((x-x0)/(x1-x0));
+    }
+  }
+  function scorePrice({ listPrice, estimatedValue }) {
+    return Math.round(clamp(0, 100, 100 - Math.max(0, listPrice/estimatedValue - 1)*500));
+  }
+  const TREND_ADJ = { declining:+10, stable:0, 'slight increase':-8, increasing:-18 };
+  function scoreCrime({ violentPer1k, propertyPer1k, trend }) {
+    return Math.round(clamp(0, 100, (100 - violentPer1k*6 - propertyPer1k) + (TREND_ADJ[trend]??0)));
+  }
+  const AFF_CURVE = [[20,100],[28,75],[36,45],[43,20],[50,0]];
+  function scoreAfford({ monthlyPITI, grossMonthlyIncome }) {
+    return Math.round(clamp(0, 100, lerp(monthlyPITI/grossMonthlyIncome*100, AFF_CURVE)));
+  }
+  const RATING_BASE = { Excellent:90, 'Above Average':70, Average:48, 'Below Average':22 };
+  function scoreSchool({ rating, nearestMiles, schoolsInRadius }) {
+    const dist = nearestMiles < 0.5 ? 0 : nearestMiles < 1 ? 5 : nearestMiles < 2 ? 10 : 15;
+    return Math.round(clamp(0, 100, (RATING_BASE[rating]??40) - dist + Math.min(12,schoolsInRadius*2)));
+  }
+  const INV_PTS = { tightening:25, stable:18, 'slightly elevated':10, high:3 };
+  function scoreAppreciation({ growth24mo, inventory, priceToRent, daysOnMarket }) {
+    return Math.round(
+      clamp(0,40,(growth24mo+10)*2) + (INV_PTS[inventory]??10) +
+      clamp(0,20,(25-priceToRent)*2) + clamp(0,15,15-Math.max(0,daysOnMarket-14)*0.25)
+    );
+  }
+  function getVerdict(s) {
+    if (s>=80) return { title:'Strong Buy Candidate',  body:'This property scores well across most categories. Data suggest favorable conditions for purchase at this time.' };
+    if (s>=65) return { title:'Cautiously Positive',   body:'Above-average profile with a few areas to watch. Consider negotiating on price and reviewing school boundary maps.' };
+    if (s>=50) return { title:'Mixed Signals',         body:'Balanced positives and concerns. Further due diligence is recommended before proceeding.' };
+    if (s>=35) return { title:'Exercise Caution',      body:'Several categories score below average. Consult local experts and verify data independently.' };
+    return         { title:'High-Risk Profile',        body:'Multiple categories score poorly. Thorough independent research is strongly recommended.' };
+  }
+
+  // Insight & risk flag builders — mirrors services/insightService.js
+  function buildInsights(rng, { crime, school, market, property }, bd) {
+    const { yearBuilt, listPrice, estValue } = property;
+    const pool = [
+      { type: market.growth24mo>=4?'positive':market.growth24mo>=0?'neutral':'concern', icon:'📈', title:'Market Appreciation',
+        body:`This area saw an estimated ${Math.abs(market.growth24mo).toFixed(1)}% price ${market.growth24mo>=0?'growth':'decline'} over the past 24 months.` },
+      { type: bd.schoolQuality>=65?'positive':bd.schoolQuality>=45?'neutral':'concern', icon:'🏫', title:'School Proximity',
+        body:`Nearest rated school is ${school.nearestMiles} mi away with a${['Above Average','Excellent'].includes(school.rating)?'n':''} ${school.rating} rating. ${school.numInRadius} schools within 3 miles.` },
+      { type: market.inventory==='tightening'?'concern':market.inventory==='high'?'positive':'neutral', icon:'📦', title:'Market Inventory',
+        body:`Local listing inventory is ${market.inventory}. Median days on market: ${market.daysOnMarket} days.` },
+      { type: market.priceToRent<=18?'positive':market.priceToRent>=28?'concern':'neutral', icon:'🏠', title:'Price-to-Rent Ratio',
+        body:`Estimated P/R ratio of ${market.priceToRent}. ${market.priceToRent<=18?'Buying appears to offer long-term value over renting.':'Renting comparable homes nearby may be cost-competitive.'}` },
+      { type: bd.crimeTrend>=65?'positive':bd.crimeTrend>=45?'neutral':'concern', icon:'🔒', title:'Crime Trend',
+        body:`Reported incidents are ${crime.trend}. Violent crime: ${crime.violentPer1k}/1k residents. Property crime: ${crime.propertyPer1k}/1k.` },
+      { type: yearBuilt>=2000?'positive':yearBuilt>=1985?'neutral':'concern', icon:'🔧', title:'Home Age & Condition',
+        body:`Built in ${yearBuilt}. ${yearBuilt>=2000?'Relatively modern construction.':yearBuilt>=1985?'Mid-age home — verify HVAC and roof condition.':'Older home — thorough inspection of plumbing and electrical recommended.'}` },
+      { type: listPrice<=estValue?'positive':'concern', icon:'💰', title:'Price vs. Estimated Value',
+        body:`List price is ${Math.round(Math.abs(listPrice-estValue)/estValue*100)}% ${listPrice>estValue?'above':'below'} the estimated market value of $${estValue.toLocaleString()}.` },
+      { type:'neutral', icon:'🌊', title:'Climate Exposure',
+        body:`Area has ${pick(rng,['moderate flood risk','elevated wildfire exposure','high wind event frequency','low natural hazard exposure'])} per climate risk models.` },
+      { type:'neutral', icon:'🚗', title:'Commute Profile',
+        body:`Average commute time to city center estimated at ${rInt(rng,15,55)} minutes by car.` },
+    ];
+    return mix(rng, pool).slice(0, 6);
+  }
+  function buildRisks(rng, { property, crime }, bd) {
+    const { listPrice, estValue, yearBuilt } = property;
+    const overpct = Math.round(Math.abs(listPrice-estValue)/estValue*100);
+    const pool = [
+      { level:'high',  icon:'🔴', title:'Flood Zone Proximity',    body:'Property is within 500 ft of a mapped 100-year flood plain. Flood insurance may be required by lender.' },
+      { level: listPrice>estValue?'medium':'low', icon: listPrice>estValue?'🟡':'🟢', title:'List vs. Estimated Value',
+        body:`List price is ${overpct}% ${listPrice>estValue?'above':'below'} our estimated market value of $${estValue.toLocaleString()}.` },
+      { level:'low',   icon:'🟢', title:'HOA Fees Present',        body:'Property may be subject to HOA dues. Confirm monthly amount and review CC&Rs before closing.' },
+      { level:'clear', icon:'✅', title:'No Open Permits Found',   body:'No open building permits were detected in public records for this address.' },
+      { level: bd.crimeTrend<50?'medium':'low', icon: bd.crimeTrend<50?'🟡':'🟢', title:'Crime Index',
+        body:`Crime trend score: ${bd.crimeTrend}/100. Reported incidents are ${crime.trend}.` },
+      { level: yearBuilt<1980?'medium':'low', icon: yearBuilt<1980?'🟡':'🟢', title:'Aging Infrastructure',
+        body:`Home built in ${yearBuilt}. Schedule a professional inspection covering roof, electrical, and plumbing.` },
+    ];
+    return mix(rng, pool).slice(0, 4);
+  }
+
+  // Public entry point — returns data in the same shape as POST /api/analyze-home
+  function analyze(address) {
+    const rng      = createRng(strSeed(address.trim().toLowerCase()));
+    const property = svcProperty(rng);
+    const crime    = svcCrime(rng);
+    const school   = svcSchool(rng);
+    const market   = svcMarket(rng);
+    const registry = svcRegistry(rng);
+    const monthly  = svcMonthlyCost(property);
+
+    const bd = {
+      priceFairness: scorePrice({ listPrice: property.listPrice, estimatedValue: property.estValue }),
+      crimeTrend:    scoreCrime(crime),
+      affordability: scoreAfford({ monthlyPITI: monthly.pi + monthly.tax + monthly.insurance, grossMonthlyIncome: market.areaMedianMonthlyIncome }),
+      schoolQuality: scoreSchool({ rating: school.rating, nearestMiles: school.nearestMiles, schoolsInRadius: school.numInRadius }),
+      appreciation:  scoreAppreciation(market),
+    };
+    const score = Math.round(clamp(0, 100,
+      bd.priceFairness*0.25 + bd.crimeTrend*0.20 + bd.affordability*0.20 + bd.schoolQuality*0.15 + bd.appreciation*0.20
+    ));
+
+    return {
+      score,
+      verdict:  getVerdict(score),
+      breakdown: { price: bd.priceFairness, crime: bd.crimeTrend, affordability: bd.affordability, schools: bd.schoolQuality, appreciation: bd.appreciation },
+      property,
+      monthlyCost:     monthly,
+      insights:        buildInsights(rng, { crime, school, market, property }, bd),
+      risks:           buildRisks(rng, { property, crime }, bd),
+      registryDensity: registry,
+    };
+  }
+
+  return { analyze };
+})();
+const HDE_SUGGESTIONS = [
+  '742 Evergreen Terrace, Springfield, IL 62704',
+  '1600 Pennsylvania Ave NW, Washington, DC 20500',
+  '221B Baker Street, Chicago, IL 60601',
+  '4 Privet Drive, Austin, TX 78701',
+  '1313 Mockingbird Lane, Nashville, TN 37201',
+  '123 Main Street, Denver, CO 80201',
+  '456 Oak Avenue, Portland, OR 97201',
+  '789 Maple Drive, Charlotte, NC 28201',
+];
+
+let hdeAcIndex = -1;
+
+// ── Autocomplete ─────────────────────────────────────────
+function hdeOnInput(val) {
+  const ac = document.getElementById('hde-ac');
+  hdeAcIndex = -1;
+  if (val.trim().length < 3) { ac.style.display = 'none'; return; }
+  const filtered = HDE_SUGGESTIONS.filter(s => s.toLowerCase().includes(val.toLowerCase())).slice(0, 5);
+  if (!filtered.length) { ac.style.display = 'none'; return; }
+  ac.innerHTML = filtered.map(s =>
+    `<div class="hde-ac-item" onmousedown="hdePickAc('${s.replace(/'/g,"\\'")}')"><span class="hde-ac-icon">📍</span>${s}</div>`
+  ).join('');
+  ac.style.display = 'block';
+}
+
+function hdePickAc(val) {
+  document.getElementById('hde-addr').value = val;
+  document.getElementById('hde-ac').style.display = 'none';
+}
+
+function hdeKeydown(e) {
+  const ac    = document.getElementById('hde-ac');
+  const items = ac.querySelectorAll('.hde-ac-item');
+  if      (e.key === 'ArrowDown')  { hdeAcIndex = Math.min(hdeAcIndex + 1, items.length - 1); hdeHighlight(items); e.preventDefault(); }
+  else if (e.key === 'ArrowUp')    { hdeAcIndex = Math.max(hdeAcIndex - 1, -1); hdeHighlight(items); e.preventDefault(); }
+  else if (e.key === 'Enter') {
+    if (hdeAcIndex >= 0 && items[hdeAcIndex]) {
+      document.getElementById('hde-addr').value = items[hdeAcIndex].textContent.trim();
+      ac.style.display = 'none'; hdeAcIndex = -1;
+    } else { hdeAnalyze(); }
+  } else if (e.key === 'Escape') { ac.style.display = 'none'; }
+}
+
+function hdeHighlight(items) {
+  items.forEach((el, i) => el.classList.toggle('hovered', i === hdeAcIndex));
+}
+
+// ── Entry point ──────────────────────────────────────────
+function hdeAnalyze() {
+  const addr = document.getElementById('hde-addr').value.trim();
+  if (!addr) { document.getElementById('hde-addr').focus(); return; }
+  document.getElementById('hde-ac').style.display = 'none';
+
+  // Show loading UI, then fire both animation + API in parallel
+  hdeSetState('loading');
+
+  const animDone = hdeRunAnimation();
+  const apiFetch = fetch(HDE_API, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ address: addr }),
+  }).then(r => {
+    if (!r.ok) return r.json().then(e => Promise.reject(e.error || `Server error ${r.status}`));
+    return r.json();
+  }).catch(() => {
+    // Server not running — execute the full pipeline locally in the browser
+    return HDE_ENGINE.analyze(addr);
+  });
+
+  // Wait for both so the animation always completes before results appear
+  Promise.all([animDone, apiFetch])
+    .then(([, data]) => hdeRenderResults(addr, data))
+    .catch(err => {
+      document.getElementById('hde-error-msg').textContent =
+        typeof err === 'string' ? err : 'Analysis failed. Please try again.';
+      hdeSetState('error');
+    });
+}
+
+// ── Loading animation (returns Promise that resolves when done) ──
+function hdeRunAnimation() {
+  const steps = ['hde-s1','hde-s2','hde-s3','hde-s4','hde-s5'];
+  const msgs  = ['Fetching property records…','Retrieving market comparables…','Checking public safety data…','Pulling school ratings…','Computing Home Score…'];
+
+  steps.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active', 'done');
+    el.querySelector('.hde-step-icon').textContent = id.replace('hde-s', '');
+  });
+
+  return new Promise(resolve => {
+    let i = 0;
+    function tick() {
+      if (i > 0) {
+        const prev = document.getElementById(steps[i - 1]);
+        prev.classList.remove('active'); prev.classList.add('done');
+        prev.querySelector('.hde-step-icon').textContent = '✓';
+      }
+      if (i < steps.length) {
+        document.getElementById(steps[i]).classList.add('active');
+        document.getElementById('hde-loading-msg').textContent = msgs[i];
+        i++;
+        setTimeout(tick, 420 + Math.random() * 200);
+      } else {
+        setTimeout(resolve, 250);
+      }
+    }
+    tick();
+  });
+}
+
+// ── Render results from API response ────────────────────
+function hdeRenderResults(addr, data) {
+  const { score, verdict, breakdown, property, monthlyCost, insights, risks, registryDensity } = data;
+
+  hdeSetState('results');
+  document.getElementById('hde-res-addr').textContent = addr;
+
+  // Score ring
+  const ringColor = score >= 75 ? '#3D6B4A' : score >= 55 ? '#7A9B72' : score >= 40 ? '#C9B48E' : '#C1714F';
+  const circ      = 2 * Math.PI * 58;
+  const ring      = document.getElementById('hde-ring');
+  ring.style.stroke          = ringColor;
+  ring.style.strokeDasharray = circ;
+  ring.style.strokeDashoffset = circ;
+  document.getElementById('hde-score-num').textContent    = score;
+  document.getElementById('hde-verdict-title').textContent = verdict.title;
+  document.getElementById('hde-verdict-body').textContent  = verdict.body;
+  setTimeout(() => { ring.style.strokeDashoffset = circ * (1 - score / 100); }, 80);
+
+  // Breakdown bars
+  const bdCats = [
+    { label: 'Price Fairness',         key: 'price',         color: '#3D6B4A' },
+    { label: 'Crime Trend',            key: 'crime',         color: '#C1714F' },
+    { label: 'Affordability',          key: 'affordability', color: '#5A8A65' },
+    { label: 'School Quality',         key: 'schools',       color: '#7A9B72' },
+    { label: 'Appreciation Potential', key: 'appreciation',  color: '#C9B48E' },
+  ];
+  document.getElementById('hde-breakdown').innerHTML = bdCats.map(c =>
+    `<div class="hde-bd-row">
+       <div class="hde-bd-label">${c.label}</div>
+       <div class="hde-bd-track"><div class="hde-bd-fill" style="width:0%;background:${c.color}" data-w="${breakdown[c.key]}"></div></div>
+       <div class="hde-bd-score">${breakdown[c.key]}</div>
+     </div>`
+  ).join('');
+  setTimeout(() => {
+    document.querySelectorAll('.hde-bd-fill').forEach(el => { el.style.width = el.dataset.w + '%'; });
+  }, 120);
+
+  // Monthly cost
+  document.getElementById('hde-cost-rows').innerHTML = [
+    ['Principal & Interest (20% down, 6.89% 30yr)', monthlyCost.pi],
+    ['Estimated Property Tax',                       monthlyCost.tax],
+    ["Homeowner's Insurance (est.)",                 monthlyCost.insurance],
+    ['Maintenance Reserve (1%/yr)',                  monthlyCost.maintenance],
+    ['Estimated Total Monthly Cost',                 monthlyCost.total],
+  ].map(([lbl, val]) =>
+    `<div class="hde-cost-row"><span>${lbl}</span><span class="hde-cost-val">$${val.toLocaleString()}</span></div>`
+  ).join('');
+
+  // Insights
+  document.getElementById('hde-insights').innerHTML = insights.map(ins =>
+    `<div class="hde-insight-card ${ins.type}">
+       <div class="hde-insight-icon">${ins.icon}</div>
+       <div class="hde-insight-title">${ins.title}</div>
+       <div class="hde-insight-body">${ins.body}</div>
+     </div>`
+  ).join('');
+
+  // Risk flags
+  document.getElementById('hde-flags').innerHTML = risks.map(f =>
+    `<div class="hde-flag ${f.level}">
+       <div class="hde-flag-icon">${f.icon}</div>
+       <div class="hde-flag-text"><strong>${f.title}</strong>${f.body}</div>
+       <div class="hde-flag-badge">${f.level}</div>
+     </div>`
+  ).join('');
+
+  // Property details
+  document.getElementById('hde-prop-rows').innerHTML = [
+    ['List Price',        '$' + property.listPrice.toLocaleString()],
+    ['Est. Market Value', '$' + property.estValue.toLocaleString()],
+    ['Bedrooms',          property.beds],
+    ['Bathrooms',         property.baths],
+    ['Square Footage',    property.sqft.toLocaleString() + ' sq ft'],
+    ['Year Built',        property.yearBuilt],
+    ['Est. Annual Tax',   '$' + property.annTax.toLocaleString() + ` (${property.taxRate}%)`],
+  ].map(([l, v]) =>
+    `<div class="hde-prop-row"><span>${l}</span><span class="hde-prop-val">${v}</span></div>`
+  ).join('');
+
+  // Registry density
+  const reg = registryDensity;
+  document.getElementById('hde-reg-num').textContent     = reg.per100k;
+  document.getElementById('hde-reg-bar').style.background = reg.color;
+  document.getElementById('hde-reg-note').textContent    = reg.note;
+  setTimeout(() => { document.getElementById('hde-reg-bar').style.width = reg.barPct + '%'; }, 120);
+
+  window.scrollTo({ top: document.getElementById('tab-hde').offsetTop - 80, behavior: 'smooth' });
+}
+
+// ── State machine ─────────────────────────────────────────
+function hdeSetState(state) {
+  document.getElementById('hde-state-input').style.display   = state === 'input'   ? '' : 'none';
+  document.getElementById('hde-state-loading').classList.toggle('active', state === 'loading');
+  document.getElementById('hde-state-results').classList.toggle('active', state === 'results');
+  document.getElementById('hde-state-error').style.display   = state === 'error'   ? '' : 'none';
+}
+
+function hdeReset() {
+  document.getElementById('hde-addr').value = '';
+  document.getElementById('hde-ac').style.display = 'none';
+  hdeSetState('input');
+}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+mUpdateDownFromPct();
+calcMortgage();
+calcAmort();
+calcRefi();
+</script>
+</body>
+</html>
