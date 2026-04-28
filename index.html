@@ -123,7 +123,7 @@ p { color: var(--bark); }
 input[type=number] { width: 100%; padding: 12px 14px; font-size: 16px; font-weight: 600; color: var(--espresso); border: 2px solid var(--border); border-radius: 11px; background: var(--linen); outline: none; transition: border-color 0.2s, box-shadow 0.2s; -moz-appearance: textfield; }
 input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 input[type=number]:focus { border-color: var(--forest); background: #fff; box-shadow: 0 0 0 3px rgba(61,107,74,0.12); }
-.has-pfx { padding-left: 28px; } .has-sfx { padding-right: 38px; }
+input[type=number].has-pfx { padding-left: 28px; } input[type=number].has-sfx { padding-right: 38px; }
 input[type=range] { width: 100%; margin-top: 7px; -webkit-appearance: none; height: 4px; background: var(--border); border-radius: 3px; outline: none; cursor: pointer; }
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 17px; height: 17px; border-radius: 50%; background: var(--forest); border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,0.2); }
 .range-vals { display: flex; justify-content: space-between; font-size: 10px; color: var(--stone); margin-top: 3px; }
@@ -1111,7 +1111,8 @@ function switchTab(name) {
   document.querySelectorAll('.tab-bar-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const navH = document.querySelector('.nav').offsetHeight;
+  window.scrollTo({ top: document.querySelector('.tab-bar').offsetTop - navH, behavior: 'smooth' });
   if (name === 'amort') { setTimeout(calcAmort, 100); }
   if (name === 'refi')  { setTimeout(calcRefi,  100); }
   if (name === 'hde')   { hdeReset(); }
