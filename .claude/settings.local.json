@@ -3,7 +3,10 @@
     "allow": [
       "WebFetch(domain:www.bankrate.com)",
       "Bash(npm install *)",
-      "PowerShell(Get-Command node, npm -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-Command node, npm -ErrorAction SilentlyContinue)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:cde.ucr.cjis.gov)"
     ]
   }
 }
