@@ -400,6 +400,43 @@ footer { background: var(--espresso); padding: 52px 24px 26px; }
 .hde-flag.low .hde-flag-badge    { background: var(--forest); color: #fff; }
 .hde-flag.clear .hde-flag-badge  { background: var(--sage); color: #fff; }
 
+/* Crime Analysis card */
+.hde-crime-card { background: var(--card); border-radius: 18px; padding: 24px 28px; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; }
+.hde-crime-card h4 { font-size: 14px; font-weight: 800; color: var(--espresso); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.hde-crime-source { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 9px; border-radius: 20px; margin-left: auto; }
+.hde-crime-source.real { background: #EBF5EC; color: #3D6B4A; border: 1px solid #A8C4A0; }
+.hde-crime-source.mock { background: #F5F5F3; color: #888; border: 1px solid #ddd; }
+.hde-crime-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.hde-crime-stat { background: var(--linen); border-radius: 12px; padding: 14px 16px; }
+.hde-crime-stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--warm-gray); margin-bottom: 4px; }
+.hde-crime-stat-val { font-size: 26px; font-weight: 900; color: var(--espresso); line-height: 1; }
+.hde-crime-stat-unit { font-size: 10px; color: var(--warm-gray); margin-bottom: 6px; }
+.hde-crime-vs { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.hde-crime-vs.better { background: #EBF5EC; color: #3D6B4A; }
+.hde-crime-vs.worse  { background: #FFF0EC; color: #C1714F; }
+.hde-crime-vs.same   { background: #F5F5F3; color: #666; }
+.hde-crime-trend-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 13px; color: var(--bark); }
+.hde-crime-trend-pill { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+.hde-crime-trend-pill.declining { background: #EBF5EC; color: #3D6B4A; }
+.hde-crime-trend-pill.stable    { background: #F5F5F3; color: #555; }
+.hde-crime-trend-pill.increase  { background: #FEFAED; color: #A07000; }
+.hde-crime-trend-pill.high-rise { background: #FFF0EC; color: #C1714F; }
+.hde-crime-history { margin-bottom: 16px; }
+.hde-crime-history-label { font-size: 11px; font-weight: 700; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+.hde-crime-spark { display: flex; align-items: flex-end; gap: 6px; height: 44px; }
+.hde-crime-spark-bar { flex: 1; background: #C1714F; border-radius: 4px 4px 0 0; min-height: 4px; position: relative; transition: height 0.6s ease; }
+.hde-crime-spark-bar span { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 700; color: var(--espresso); white-space: nowrap; }
+.hde-crime-spark-years { display: flex; gap: 6px; margin-top: 4px; }
+.hde-crime-spark-yr { flex: 1; text-align: center; font-size: 10px; color: var(--warm-gray); }
+.hde-crime-breakdown { border-top: 1px dashed var(--border); padding-top: 14px; }
+.hde-crime-breakdown-label { font-size: 11px; font-weight: 700; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+.hde-crime-offense-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 12px; }
+.hde-crime-offense-name { width: 130px; color: var(--bark); flex-shrink: 0; text-transform: capitalize; }
+.hde-crime-offense-bar-wrap { flex: 1; background: var(--linen); border-radius: 4px; height: 7px; overflow: hidden; }
+.hde-crime-offense-bar { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+.hde-crime-offense-val { width: 40px; text-align: right; font-weight: 700; color: var(--espresso); font-size: 11px; }
+.hde-crime-datayr { font-size: 10px; color: var(--warm-gray); margin-top: 10px; }
+
 /* Two-col lower section */
 .hde-lower { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
 .hde-prop-card, .hde-reg-card { background: var(--card); border-radius: 18px; padding: 24px 28px; box-shadow: 0 4px 20px var(--shadow); border: 1px solid var(--border); }
@@ -1014,6 +1051,41 @@ footer { background: var(--espresso); padding: 52px 24px 26px; }
           <div class="hde-flags-list" id="hde-flags"></div>
         </div>
 
+        <!-- Crime Analysis -->
+        <div class="hde-crime-card" id="hde-crime-card">
+          <h4>🔒 Crime Analysis
+            <span class="hde-crime-source mock" id="hde-crime-source-badge">Simulated</span>
+          </h4>
+          <div class="hde-crime-stats">
+            <div class="hde-crime-stat">
+              <div class="hde-crime-stat-label">Violent Crime</div>
+              <div class="hde-crime-stat-val" id="hde-cv-violent">--</div>
+              <div class="hde-crime-stat-unit">per 1,000 residents</div>
+              <span class="hde-crime-vs" id="hde-cv-v-nat"></span>
+            </div>
+            <div class="hde-crime-stat">
+              <div class="hde-crime-stat-label">Property Crime</div>
+              <div class="hde-crime-stat-val" id="hde-cv-property">--</div>
+              <div class="hde-crime-stat-unit">per 1,000 residents</div>
+              <span class="hde-crime-vs" id="hde-cv-p-nat"></span>
+            </div>
+          </div>
+          <div class="hde-crime-trend-row">
+            Trend: <span class="hde-crime-trend-pill" id="hde-cv-trend-pill">--</span>
+            <span id="hde-cv-trend-pct" style="color:var(--warm-gray)"></span>
+          </div>
+          <div class="hde-crime-history" id="hde-cv-history" style="display:none">
+            <div class="hde-crime-history-label">Violent Crime Rate — 3-Year Trend</div>
+            <div class="hde-crime-spark" id="hde-cv-spark"></div>
+            <div class="hde-crime-spark-years" id="hde-cv-spark-yrs"></div>
+          </div>
+          <div class="hde-crime-breakdown" id="hde-cv-breakdown" style="display:none">
+            <div class="hde-crime-breakdown-label">Offense Breakdown (most recent year)</div>
+            <div id="hde-cv-offenses"></div>
+          </div>
+          <div class="hde-crime-datayr" id="hde-cv-datayr"></div>
+        </div>
+
         <!-- Property details + Registry density -->
         <div class="hde-lower">
           <div class="hde-prop-card">
@@ -1541,8 +1613,20 @@ const HDE_ENGINE = (() => {
     return { pi, tax, insurance, maintenance, total: pi + tax + insurance + maintenance };
   }
   function svcCrime(rng) {
-    return { violentPer1k: rFloat(rng,0.8,12.0,1), propertyPer1k: rFloat(rng,5.0,48.0,1),
-             trend: pick(rng,['declining','stable','slight increase','increasing']) };
+    const violentPer1k  = rFloat(rng, 0.8, 12.0, 1);
+    const propertyPer1k = rFloat(rng, 5.0, 48.0, 1);
+    const trend         = pick(rng, ['declining','stable','slight increase','increasing']);
+    return {
+      source: 'simulated (no FBI API key)',
+      violentPer1k, propertyPer1k, trend,
+      trendPct:   null,
+      vsNational: {
+        violent:  parseFloat(((violentPer1k  / 3.7  - 1) * 100).toFixed(0)),
+        property: parseFloat(((propertyPer1k / 19.6 - 1) * 100).toFixed(0)),
+      },
+      history:   null,
+      breakdown: null,
+    };
   }
   function svcSchool(rng) {
     return { rating: pick(rng,['Below Average','Average','Above Average','Excellent']),
@@ -1677,6 +1761,7 @@ const HDE_ENGINE = (() => {
       insights:        buildInsights(rng, { crime, school, market, property }, bd),
       risks:           buildRisks(rng, { property, crime }, bd),
       registryDensity: registry,
+      crime,
     };
   }
 
@@ -1796,7 +1881,7 @@ function hdeRunAnimation() {
 
 // ── Render results from API response ────────────────────
 function hdeRenderResults(addr, data) {
-  const { score, verdict, breakdown, property, monthlyCost, insights, risks, registryDensity } = data;
+  const { score, verdict, breakdown, property, monthlyCost, insights, risks, registryDensity, crime } = data;
 
   hdeSetState('results');
   document.getElementById('hde-res-addr').textContent = addr;
@@ -1880,6 +1965,84 @@ function hdeRenderResults(addr, data) {
   document.getElementById('hde-reg-bar').style.background = reg.color;
   document.getElementById('hde-reg-note').textContent    = reg.note;
   setTimeout(() => { document.getElementById('hde-reg-bar').style.width = reg.barPct + '%'; }, 120);
+
+  // Crime Analysis card
+  if (crime) {
+    const isReal = crime.source && crime.source.includes('FBI');
+    const badge  = document.getElementById('hde-crime-source-badge');
+    badge.textContent  = isReal ? 'FBI UCR Live Data' : 'Simulated Data';
+    badge.className    = 'hde-crime-source ' + (isReal ? 'real' : 'mock');
+
+    document.getElementById('hde-cv-violent').textContent  = crime.violentPer1k;
+    document.getElementById('hde-cv-property').textContent = crime.propertyPer1k;
+
+    const fmtNat = (pct) => {
+      if (pct == null) return '';
+      const abs = Math.abs(pct);
+      if (pct <= -5)  return `<span class="hde-crime-vs better">▼ ${abs}% below national avg</span>`;
+      if (pct >= 5)   return `<span class="hde-crime-vs worse">▲ ${abs}% above national avg</span>`;
+      return `<span class="hde-crime-vs same">≈ near national avg</span>`;
+    };
+    document.getElementById('hde-cv-v-nat').outerHTML  = fmtNat(crime.vsNational?.violent)  || '<span id="hde-cv-v-nat"></span>';
+    document.getElementById('hde-cv-p-nat').outerHTML  = fmtNat(crime.vsNational?.property) || '<span id="hde-cv-p-nat"></span>';
+
+    const trendMap = { declining: 'declining', stable: 'stable', 'slight increase': 'increase', increasing: 'high-rise' };
+    const pill = document.getElementById('hde-cv-trend-pill');
+    pill.textContent = crime.trend.charAt(0).toUpperCase() + crime.trend.slice(1);
+    pill.className   = 'hde-crime-trend-pill ' + (trendMap[crime.trend] || 'stable');
+    document.getElementById('hde-cv-trend-pct').textContent =
+      crime.trendPct != null ? `(${crime.trendPct > 0 ? '+' : ''}${crime.trendPct}% over 3 yrs)` : '';
+
+    // Sparkline — only when history is present
+    const histWrap = document.getElementById('hde-cv-history');
+    if (crime.history && crime.history.length >= 2) {
+      histWrap.style.display = '';
+      const rows    = [...crime.history].reverse();   // oldest → newest
+      const maxRate = Math.max(...rows.map(r => r.violentRate));
+      document.getElementById('hde-cv-spark').innerHTML = rows.map(r => {
+        const h = maxRate > 0 ? Math.round((r.violentRate / maxRate) * 44) : 4;
+        return `<div class="hde-crime-spark-bar" style="height:${h}px"><span>${r.violentRate.toFixed(2)}</span></div>`;
+      }).join('');
+      document.getElementById('hde-cv-spark-yrs').innerHTML = rows.map(r =>
+        `<div class="hde-crime-spark-yr">${r.year}</div>`
+      ).join('');
+    } else {
+      histWrap.style.display = 'none';
+    }
+
+    // Offense breakdown table — only when breakdown is present
+    const bdWrap = document.getElementById('hde-cv-breakdown');
+    if (crime.breakdown && Object.keys(crime.breakdown).length) {
+      bdWrap.style.display = '';
+      const offenses = Object.entries(crime.breakdown);
+      const maxActual = Math.max(...offenses.map(([, v]) => v.actual || 0));
+      const offenseColors = {
+        'homicide': '#C1714F', 'rape-legacy': '#C1714F',
+        'robbery': '#C9B48E', 'aggravated-assault': '#C9B48E',
+        'burglary': '#7A9B72', 'larceny': '#7A9B72', 'motor-vehicle-theft': '#5A8A65',
+      };
+      document.getElementById('hde-cv-offenses').innerHTML = offenses.map(([name, v]) => {
+        const barPct = maxActual > 0 ? Math.round((v.actual / maxActual) * 100) : 0;
+        const color  = offenseColors[name] || '#C9B48E';
+        const label  = name.replace(/-/g, ' ').replace('legacy', '');
+        return `<div class="hde-crime-offense-row">
+          <div class="hde-crime-offense-name">${label}</div>
+          <div class="hde-crime-offense-bar-wrap">
+            <div class="hde-crime-offense-bar" style="width:0%;background:${color}" data-w="${barPct}"></div>
+          </div>
+          <div class="hde-crime-offense-val">${v.actual?.toLocaleString() ?? '—'}</div>
+        </div>`;
+      }).join('');
+      setTimeout(() => {
+        document.querySelectorAll('.hde-crime-offense-bar').forEach(b => { b.style.width = b.dataset.w + '%'; });
+      }, 150);
+    } else {
+      bdWrap.style.display = 'none';
+    }
+
+    document.getElementById('hde-cv-datayr').textContent =
+      crime.dataYear ? `Data source: ${crime.source} · Report year: ${crime.dataYear}` : `Source: ${crime.source}`;
+  }
 
   window.scrollTo({ top: document.getElementById('tab-hde').offsetTop - 80, behavior: 'smooth' });
 }

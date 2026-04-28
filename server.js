@@ -1,5 +1,8 @@
 'use strict';
 
+// Load .env before anything else (no-op if file absent)
+try { require('dotenv').config(); } catch { /* dotenv optional */ }
+
 const express = require('express');
 const path    = require('path');
 
@@ -12,7 +15,8 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // API routes
-app.use('/api/analyze-home', require('./routes/analyzeHome'));
+app.use('/api/analyze-home',   require('./routes/analyzeHome'));
+app.use('/api/fetch-listing',  require('./routes/fetchListing'));
 
 // Fallback: always serve mortgage.html for the root
 app.get('/', (_req, res) => {
