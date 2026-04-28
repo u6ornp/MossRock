@@ -11,13 +11,14 @@ const { getSchoolData }                   = require('../services/schoolService')
 const { getMarketData }                   = require('../services/marketService');
 const { getRegistryData }                 = require('../services/registryService');
 const { buildInsights, buildRiskFlags }   = require('../services/insightService');
+const { geocodeAddress }                  = require('../services/geocodeService');
 
 /**
  * POST /api/analyze-home
  * Body:    { address: string }
  * Returns: full home analysis report
  */
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { address } = req.body ?? {};
 
   if (!address || typeof address !== 'string' || address.trim().length < 5) {
@@ -27,40 +28,44 @@ router.post('/', (req, res) => {
   // Deterministic seed — same address always produces the same report
   const rng = createRng(strSeed(address.trim().toLowerCase()));
 
-  // ── 1. Collect raw data from each mock service ──────────────────────────────
-  //    In production, replace each call with a real third-party API fetch.
-  const property = getPropertyData(rng);
-  const crime    = getCrimeData(rng);
-  const school   = getSchoolData(rng);
-  const market   = getMarketData(rng);
-  const registry = getRegistryData(rng);
+  // ── 1. Geocode ──────────────────────────────────────────────────────────────
+  //    Best-effort: if geocoding fails we still run with mock data.
+  let geoInfo = { city: '', stateAbbr: '' };
+  try {
+    geoInfo = await geocodeAddress(address.trim());
+  } catch {
+    // non-fatal — crime service falls back to mock when city/state are empty
+  }
 
-  // ── 2. Compute monthly cost ─────────────────────────────────────────────────
-  //    Done before scoring so PITI is available as an affordability input.
+  // ── 2. Collect raw data from each service ───────────────────────────────────
+  //    crime is async (may call FBI API); others remain sync mock services.
+  const [crime, property, school, market, registry] = await Promise.all([
+    getCrimeData(geoInfo, rng),
+    Promise.resolve(getPropertyData(rng)),
+    Promise.resolve(getSchoolData(rng)),
+    Promise.resolve(getMarketData(rng)),
+    Promise.resolve(getRegistryData(rng)),
+  ]);
+
+  // ── 3. Compute monthly cost ─────────────────────────────────────────────────
   const monthlyCost = getMonthlyCost(property);
 
-  // ── 3. Run the scoring engine ────────────────────────────────────────────────
-  //    Each factor receives only the specific raw fields it needs, keeping
-  //    the engine free of service-layer assumptions.
+  // ── 4. Run the scoring engine ────────────────────────────────────────────────
   const { composite: score, breakdown } = scoreHome({
     property: { listPrice: property.listPrice, estimatedValue: property.estValue },
     crime:    { violentPer1k: crime.violentPer1k, propertyPer1k: crime.propertyPer1k, trend: crime.trend },
-    // PITI = PI + tax + insurance. Maintenance is excluded from housing DTI by convention.
     monthly:  { piti: monthlyCost.pi + monthlyCost.tax + monthlyCost.insurance, grossMonthlyIncome: market.areaMedianMonthlyIncome },
     school:   { rating: school.rating, nearestMiles: school.nearestMiles, schoolsInRadius: school.numInRadius },
     market:   { growth24mo: market.growth24mo, inventory: market.inventory, priceToRent: market.priceToRent, daysOnMarket: market.daysOnMarket },
   });
 
-  const verdict  = getVerdict(score);
+  const verdict = getVerdict(score);
 
-  // ── 4. Build narrative content from service data + computed breakdown ────────
+  // ── 5. Build narrative content ───────────────────────────────────────────────
   const insights = buildInsights(rng, { crime, school, market, property }, breakdown);
   const risks    = buildRiskFlags(rng, { property, crime }, breakdown);
 
-  // ── 5. Respond ───────────────────────────────────────────────────────────────
-  //    Map internal engine keys → public API contract keys.
-  //    Internal: priceFairness / crimeTrend / schoolQuality
-  //    Public:   price         / crime      / schools
+  // ── 6. Respond ───────────────────────────────────────────────────────────────
   res.json({
     score,
     verdict,
@@ -76,6 +81,8 @@ router.post('/', (req, res) => {
     insights,
     risks,
     registryDensity: registry,
+    crime,       // full crime object (includes real FBI data fields when available)
+    geo: geoInfo,
   });
 });
 
